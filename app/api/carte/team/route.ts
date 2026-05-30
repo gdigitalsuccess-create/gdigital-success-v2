@@ -14,13 +14,19 @@ async function getAuthUser(req: NextRequest) {
   return user ?? null;
 }
 
-async function checkBusiness(userId: string) {
+const TEAM_LIMITS: Record<string, number> = {
+  pro: 2,
+  business: 5,
+  business_team: 10,
+};
+
+async function getPlanLimit(userId: string): Promise<number> {
   const { data } = await supabaseAdmin
     .from('carte_profiles')
     .select('plan')
     .eq('user_id', userId)
     .single();
-  return data?.plan?.toLowerCase() === 'business_team';
+  return TEAM_LIMITS[data?.plan?.toLowerCase() ?? ''] ?? 0;
 }
 
 function slugify(name: string) {
@@ -47,8 +53,9 @@ export async function POST(req: NextRequest) {
   const user = await getAuthUser(req);
   if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
-  if (!(await checkBusiness(user.id))) {
-    return NextResponse.json({ error: 'Plan Business requis' }, { status: 403 });
+  const limit = await getPlanLimit(user.id);
+  if (limit === 0) {
+    return NextResponse.json({ error: 'Plan Pro ou supérieur requis' }, { status: 403 });
   }
 
   const { count } = await supabaseAdmin
@@ -56,8 +63,8 @@ export async function POST(req: NextRequest) {
     .select('*', { count: 'exact', head: true })
     .eq('team_owner_id', user.id);
 
-  if ((count ?? 0) >= 10) {
-    return NextResponse.json({ error: 'Limite de 10 membres atteinte' }, { status: 400 });
+  if ((count ?? 0) >= limit) {
+    return NextResponse.json({ error: `Limite de ${limit} membres atteinte` }, { status: 400 });
   }
 
   const { name, title, email, phone, slug: slugInput } = await req.json();

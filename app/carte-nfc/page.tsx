@@ -11,7 +11,7 @@ export default function CarteNFCPage() {
   const { lang } = useLang();
   const isFr = lang === 'fr';
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [winWidth, setWinWidth] = useState(1280);
+  const [winWidth, setWinWidth] = useState(375);
   useEffect(() => {
     const onResize = () => setWinWidth(window.innerWidth);
     onResize();
@@ -53,7 +53,7 @@ export default function CarteNFCPage() {
       highlight: false,
     },
     {
-      name: 'Pro', price: '24',
+      name: 'Pro', price: '29',
       desc: isFr ? 'Le plus populaire' : 'Most popular',
       features: isFr
         ? [
@@ -65,7 +65,8 @@ export default function CarteNFCPage() {
             'Bouton prise de RDV (Calendly / Cal.com)',
             '2 vidéos · 12 photos portfolio',
             'VCard téléchargeable',
-            'Agent IA — 200 msgs/mois (+$5 = +200 msgs)',
+            '2 membres équipe inclus',
+            'Agent IA — 200 msgs/mois (+$5 = +200 msgs temporaires*)',
           ]
         : [
             'Everything in Starter +',
@@ -76,14 +77,15 @@ export default function CarteNFCPage() {
             'Booking button (Calendly / Cal.com)',
             '2 videos · 12 portfolio photos',
             'Downloadable VCard',
-            'AI Agent — 200 msgs/month (+$5 = +200 msgs)',
+            '2 team members included',
+            'AI Agent — 200 msgs/month (+$5 = +200 temporary msgs*)',
           ],
       cta: isFr ? 'Choisir Pro' : 'Choose Pro',
       highlight: true,
     },
     {
-      name: 'Business', price: '49',
-      desc: isFr ? 'L\'entrepreneur solo ambitieux' : 'The ambitious solo entrepreneur',
+      name: 'Business', price: '59',
+      desc: isFr ? 'Pour les entrepreneurs ambitieux' : 'For ambitious entrepreneurs',
       features: isFr
         ? [
             'Tout Pro +',
@@ -91,8 +93,9 @@ export default function CarteNFCPage() {
             'Vidéos illimitées + upload MP4 direct',
             'Photos portfolio illimitées',
             'Liens personnalisés illimités',
+            '5 membres équipe inclus',
             'Support prioritaire',
-            'Agent IA — 500 msgs/mois (+$5 = +500 msgs)',
+            'Agent IA — 500 msgs/mois (+$5 = +200 msgs temporaires*)',
           ]
         : [
             'Everything in Pro +',
@@ -100,14 +103,15 @@ export default function CarteNFCPage() {
             'Unlimited videos + direct MP4 upload',
             'Unlimited portfolio photos',
             'Unlimited custom links',
+            '5 team members included',
             'Priority support',
-            'AI Agent — 500 msgs/month (+$5 = +500 msgs)',
+            'AI Agent — 500 msgs/month (+$5 = +200 temporary msgs*)',
           ],
       cta: isFr ? 'Choisir Business' : 'Choose Business',
       highlight: false,
     },
     {
-      name: isFr ? 'Business Équipe' : 'Business Team', price: '89',
+      name: isFr ? 'Business Équipe' : 'Business Team', price: '99',
       desc: isFr ? 'PME, agences & équipes commerciales' : 'SMBs, agencies & sales teams',
       features: isFr
         ? [
@@ -115,16 +119,16 @@ export default function CarteNFCPage() {
             'Jusqu\'à 10 cartes membres',
             'Gestion équipe centralisée (1 dashboard)',
             'Activation / désactivation à la volée',
-            'Agent IA — 500 msgs/mois par carte',
-            '→ 11 cartes à $89 vs $132 en individuel',
+            'Agent IA — 500 msgs/mois par carte (+$5 = +200 msgs temporaires*)',
+            '→ 11 cartes à $99 vs $649 en individuel',
           ]
         : [
             'Everything in Business +',
             'Up to 10 member cards',
             'Centralized team management (1 dashboard)',
             'On-the-fly activation / deactivation',
-            'AI Agent — 500 msgs/month per card',
-            '→ 11 cards at $89 vs $132 individually',
+            'AI Agent — 500 msgs/month per card (+$5 = +200 temporary msgs*)',
+            '→ 11 cards at $99 vs $649 individually',
           ],
       cta: isFr ? 'Choisir Équipe' : 'Choose Team',
       highlight: false,
@@ -229,6 +233,12 @@ export default function CarteNFCPage() {
     {
       q: isFr ? 'Puis-je annuler à tout moment ?' : 'Can I cancel at any time?',
       a: isFr ? "Oui, sans engagement. Si vous annulez, votre profil est désactivé mais la carte physique reste en votre possession." : "Yes, no commitment. If you cancel, your profile is deactivated but you keep the physical card.",
+    },
+    {
+      q: isFr ? 'Faut-il une connexion internet pour partager sa carte ?' : 'Do you need internet to share your card?',
+      a: isFr
+        ? "La puce NFC et le QR code fonctionnent sans internet — ils transmettent simplement un lien. La personne qui reçoit votre carte a besoin d'internet pour ouvrir votre profil lors de la première visite. Ensuite, deux choses : (1) le bouton \"Enregistrer le contact\" télécharge vos coordonnées directement sur son téléphone — plus besoin d'internet pour vous appeler ou vous écrire. (2) Le profil est mis en cache (PWA) pour les visites suivantes hors-ligne. En pratique, un réseau 2G ou WhatsApp suffit pour la première ouverture."
+        : "The NFC chip and QR code work without internet — they simply transmit a link. The person receiving your card needs internet to open your profile on the first visit. After that: (1) the \"Save contact\" button downloads your info directly to their phone — no internet needed to call or message you. (2) The profile is cached (PWA) for future offline visits. In practice, a 2G network or WhatsApp is enough for the first open.",
     },
   ];
 
@@ -526,6 +536,11 @@ export default function CarteNFCPage() {
                 </div>
               ))}
             </div>
+            <p style={{ textAlign: 'center', marginTop: 24, color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+              {isFr
+                ? '* Les messages supplémentaires (+$5 = +200 msgs) sont valables jusqu\'au renouvellement de votre abonnement. Le solde non utilisé ne se reporte pas.'
+                : '* Extra messages (+$5 = +200 msgs) are valid until your subscription renewal. Unused balance does not carry over.'}
+            </p>
           </div>
         </section>
 

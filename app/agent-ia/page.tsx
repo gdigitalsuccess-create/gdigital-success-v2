@@ -68,24 +68,24 @@ export default function AgentIAPage() {
 
   const PLANS = [
     {
-      id: 'starter', name: 'Starter', price: 99, badge: null, color: '#6C63FF',
+      id: 'starter', name: 'Starter', price: 39, badge: null, color: '#6C63FF',
       features: isFr
-        ? ['Chat web (widget sur votre site)', 'Facebook Messenger', 'Prise de RDV automatique', 'Capture de leads', 'Dashboard client', 'Emails automatiques', 'Support email']
-        : ['Web chat (widget on your site)', 'Facebook Messenger', 'Automatic appointment booking', 'Lead capture', 'Client dashboard', 'Automatic emails', 'Email support'],
+        ? ['Chat web (widget sur votre site)', '300 msgs/mois', 'Instructions personnalisées', 'Capture de leads automatique', 'Dashboard client', 'Emails automatiques', 'Support email']
+        : ['Web chat (widget on your site)', '300 msgs/month', 'Custom instructions', 'Automatic lead capture', 'Client dashboard', 'Automatic emails', 'Email support'],
       cta: isFr ? 'Commencer avec Starter' : 'Get started with Starter',
     },
     {
-      id: 'business', name: 'Business', price: 199, badge: isFr ? 'Le plus populaire' : 'Most popular', color: '#D4A843',
+      id: 'business', name: 'Business', price: 79, badge: isFr ? 'Le plus populaire' : 'Most popular', color: '#D4A843',
       features: isFr
-        ? ['Tout Starter, plus :', 'WhatsApp (numéro dédié)', 'RDV multi-canaux', 'Statistiques avancées', 'Instructions personnalisées', 'Rapport hebdomadaire', 'Support prioritaire']
-        : ['Everything in Starter, plus:', 'WhatsApp (dedicated number)', 'Multi-channel appointments', 'Advanced statistics', 'Custom instructions', 'Weekly report', 'Priority support'],
+        ? ['Tout Starter, plus :', 'Intégration WhatsApp', '700 msgs/mois', 'Statistiques avancées', 'Rapport hebdomadaire', 'Support prioritaire']
+        : ['Everything in Starter, plus:', 'WhatsApp integration', '700 msgs/month', 'Advanced statistics', 'Weekly report', 'Priority support'],
       cta: isFr ? 'Choisir Business' : 'Choose Business',
     },
     {
-      id: 'premium', name: 'Premium', price: 299, badge: isFr ? 'Tout inclus' : 'All inclusive', color: '#3ECFCF',
+      id: 'premium', name: 'Premium', price: 129, badge: isFr ? 'Tout inclus' : 'All inclusive', color: '#3ECFCF',
       features: isFr
-        ? ['Tout Business, plus :', 'Agent vocal (appels entrants)', 'Numéro Twilio dédié', 'Instagram DMs (bêta)', 'Onboarding personnalisé', 'Formation équipe incluse', 'Support WhatsApp direct']
-        : ['Everything in Business, plus:', 'Voice agent (incoming calls)', 'Dedicated Twilio number', 'Instagram DMs (beta)', 'Personalized onboarding', 'Team training included', 'Direct WhatsApp support'],
+        ? ['Tout Business, plus :', 'Agent vocal (appels entrants)', 'Facebook Messenger + Instagram DMs', '1 500 msgs/mois', 'Onboarding personnalisé', 'Formation équipe incluse', 'Support WhatsApp 7j/7']
+        : ['Everything in Business, plus:', 'Voice agent (incoming calls)', 'Facebook Messenger + Instagram DMs', '1,500 msgs/month', 'Personalized onboarding', 'Team training included', 'WhatsApp support 7d/7'],
       cta: isFr ? 'Choisir Premium' : 'Choose Premium',
     },
   ];
@@ -276,9 +276,16 @@ export default function AgentIAPage() {
               </div>
             ))}
           </div>
-          <p style={{ textAlign: 'center', marginTop: 28, color: 'var(--text-muted)', fontSize: 13 }}>
-            {isFr ? 'Paiement : Virement · Mobile Money · PayPal · Stripe (bientôt)' : 'Payment: Bank transfer · Mobile Money · PayPal · Stripe (soon)'}
-          </p>
+          <div style={{ textAlign: 'center', marginTop: 28 }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 8 }}>
+              {isFr ? 'Paiement : Virement · Mobile Money · PayPal · Stripe (bientôt)' : 'Payment: Bank transfer · Mobile Money · PayPal · Stripe (soon)'}
+            </p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 12 }}>
+              {isFr
+                ? '💡 Besoin de plus de messages ? +$5 = +200 msgs supplémentaires, valables jusqu\'au prochain renouvellement.'
+                : '💡 Need more messages? +$5 = +200 extra msgs, valid until your next renewal.'}
+            </p>
+          </div>
         </section>
 
         {/* ── FAQ ───────────────────────────────────────────────────────────── */}

@@ -27,6 +27,7 @@ type Profile = {
   youtube: string;
   twitter: string;
   plan: string;
+  ai_instructions: string;
 };
 
 type Doc = {
@@ -119,6 +120,7 @@ const EMPTY_FORM = {
   name: '', title: '', company: '', description: '',
   phone: '', email: '', website: '', location: '', rdv_url: '',
   instagram: '', tiktok: '', facebook: '', linkedin: '', youtube: '', twitter: '',
+  ai_instructions: '',
 };
 
 const DOC_TYPES = ['pdf', 'brochure', 'catalogue', 'menu'] as const;
@@ -223,6 +225,9 @@ export default function DashboardPage() {
   // Leads state
   const [leads, setLeads] = useState<LeadItem[]>([]);
 
+  // Chat logs state
+  const [chatLogs, setChatLogs] = useState<{ id: string; visitor_message: string; agent_reply: string; is_lead: boolean; created_at: string }[]>([]);
+
   // Team state
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [showTeamModal, setShowTeamModal] = useState(false);
@@ -309,6 +314,16 @@ export default function DashboardPage() {
     }
   }, []);
 
+  const fetchChatLogs = useCallback(async (token: string) => {
+    const res = await fetch('/api/carte/chat-logs', {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setChatLogs(Array.isArray(data) ? data : []);
+    }
+  }, []);
+
   const fetchLinks = useCallback(async (token: string) => {
     const res = await fetch('/api/carte/links', {
       headers: { 'Authorization': `Bearer ${token}` },
@@ -348,21 +363,22 @@ export default function DashboardPage() {
     if (data) {
       setProfile(data as Profile);
       setForm({
-        name:        data.name        ?? '',
-        title:       data.title       ?? '',
-        company:     data.company     ?? '',
-        description: data.description ?? '',
-        phone:       data.phone       ?? '',
-        email:       data.email       ?? '',
-        website:     data.website     ?? '',
-        location:    data.location    ?? '',
-        rdv_url:     data.rdv_url     ?? '',
-        instagram:   data.instagram   ?? '',
-        tiktok:      data.tiktok      ?? '',
-        facebook:    data.facebook    ?? '',
-        linkedin:    data.linkedin    ?? '',
-        youtube:     data.youtube     ?? '',
-        twitter:     data.twitter     ?? '',
+        name:            data.name            ?? '',
+        title:           data.title           ?? '',
+        company:         data.company         ?? '',
+        description:     data.description     ?? '',
+        phone:           data.phone           ?? '',
+        email:           data.email           ?? '',
+        website:         data.website         ?? '',
+        location:        data.location        ?? '',
+        rdv_url:         data.rdv_url         ?? '',
+        instagram:       data.instagram       ?? '',
+        tiktok:          data.tiktok          ?? '',
+        facebook:        data.facebook        ?? '',
+        linkedin:        data.linkedin        ?? '',
+        youtube:         data.youtube         ?? '',
+        twitter:         data.twitter         ?? '',
+        ai_instructions: data.ai_instructions ?? '',
       });
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.access_token) {
@@ -375,11 +391,12 @@ export default function DashboardPage() {
           fetchStats(session.access_token),
           fetchLinks(session.access_token),
           fetchTeam(session.access_token),
+          fetchChatLogs(session.access_token),
         ]);
       }
     }
     setLoading(false);
-  }, [fetchDocs, fetchPortfolio, fetchVideos, fetchLeads, fetchPushSubCount, fetchStats, fetchLinks, fetchTeam]);
+  }, [fetchDocs, fetchPortfolio, fetchVideos, fetchLeads, fetchPushSubCount, fetchStats, fetchLinks, fetchTeam, fetchChatLogs]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -943,6 +960,7 @@ export default function DashboardPage() {
             { id: 'section-documents',  emoji: '📄', label: 'Documents' },
             { id: 'section-portfolio',  emoji: '🖼', label: 'Réalisations' },
             { id: 'section-videos',     emoji: '🎬', label: 'Vidéos' },
+            ...(['pro','business','business_team'].includes(plan) ? [{ id: 'section-agent-ia', emoji: '🤖', label: 'Assistant IA' }] : []),
           ].map(item => (
             <a key={item.id} href={`#${item.id}`} className={styles.sidebarLink}>
               <span>{item.emoji}</span>{item.label}
@@ -950,10 +968,11 @@ export default function DashboardPage() {
           ))}
           <div className={styles.sidebarDivider} />
           {[
-            { id: 'section-leads',      emoji: '💬', label: 'Contacts reçus' },
-            { id: 'section-push',       emoji: '🔔', label: 'Notifications' },
-            { id: 'section-signature',  emoji: '✉️', label: 'Signature email' },
-            { id: 'section-plan',       emoji: '⭐', label: 'Mon plan' },
+            { id: 'section-leads',        emoji: '💬', label: 'Contacts reçus' },
+            ...(['pro','business','business_team'].includes(plan) ? [{ id: 'section-chat-logs', emoji: '🤖', label: 'Conversations IA' }] : []),
+            { id: 'section-push',         emoji: '🔔', label: 'Notifications' },
+            { id: 'section-signature',    emoji: '✉️', label: 'Signature email' },
+            { id: 'section-plan',         emoji: '⭐', label: 'Mon plan' },
           ].map(item => (
             <a key={item.id} href={`#${item.id}`} className={styles.sidebarLink}>
               <span>{item.emoji}</span>{item.label}
@@ -1271,6 +1290,44 @@ export default function DashboardPage() {
             </div>
           ))}
         </div>
+
+        {/* ---- Assistant IA (Pro+) ---- */}
+        {['pro', 'business', 'business_team'].includes(plan) && (
+          <div id="section-agent-ia" className={styles.section}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <p className={styles.sectionTitle} style={{ marginBottom: 0 }}>Assistant IA</p>
+              <span style={{ fontSize: '0.62rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', background: 'rgba(0,207,255,0.15)', color: '#00CFFF', border: '1px solid rgba(0,207,255,0.3)', borderRadius: 9999, padding: '2px 9px' }}>
+                Pro
+              </span>
+            </div>
+            <p style={{ fontSize: '0.78rem', color: '#6B7280', margin: '-4px 0 14px', lineHeight: 1.6 }}>
+              Décrivez vos services, tarifs et réponses habituelles. L&apos;assistant s&apos;en servira pour répondre aux visiteurs de votre carte.
+            </p>
+            <div className={styles.field}>
+              <label className={styles.label}>Instructions pour votre assistant</label>
+              <textarea
+                className={`${styles.input} ${styles.textarea}`}
+                value={form.ai_instructions}
+                onChange={set('ai_instructions')}
+                rows={10}
+                style={{ resize: 'vertical', minHeight: 200 }}
+                placeholder={`Je suis [poste] spécialisé en [domaine].
+
+Services proposés :
+- [Service 1] : [prix ou description courte]
+- [Service 2] : [prix ou description courte]
+
+Questions fréquentes :
+- Q : Quel est votre délai ? → R : [votre réponse]
+- Q : Vous travaillez à distance ? → R : [votre réponse]
+
+Pour prendre RDV : [instruction ou lien]
+Délai de réponse habituel : [ex: 24h]
+Langue de travail : [français, anglais...]`}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Message */}
         {msg && (
@@ -1866,6 +1923,51 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+
+        {/* ---- Conversations IA ---- */}
+        {['pro', 'business', 'business_team'].includes(plan) && (
+          <div id="section-chat-logs" className={styles.section} style={{ marginTop: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <p className={styles.sectionTitle} style={{ marginBottom: 0 }}>Conversations IA</p>
+              {chatLogs.length > 0 && (
+                <span style={{ fontSize: '0.72rem', color: '#6B7280', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 9999, padding: '3px 10px' }}>
+                  {chatLogs.length} échange{chatLogs.length > 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+
+            {chatLogs.length === 0 ? (
+              <p className={styles.emptyDocs}>Aucune conversation pour l&apos;instant.<br/>Les échanges avec votre assistant IA apparaîtront ici.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {chatLogs.map(log => (
+                  <div key={log.id} style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${log.is_lead ? 'rgba(0,207,255,0.25)' : 'rgba(255,255,255,0.07)'}`, borderRadius: 12, padding: '14px 16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                      <span style={{ fontSize: '0.7rem', color: '#4B5563' }}>
+                        {new Date(log.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      {log.is_lead && (
+                        <span style={{ fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', background: 'rgba(0,207,255,0.12)', color: '#00CFFF', border: '1px solid rgba(0,207,255,0.3)', borderRadius: 9999, padding: '2px 8px' }}>
+                          Prospect
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                        <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#6B7280', flexShrink: 0, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Visiteur</span>
+                        <p style={{ fontSize: '0.82rem', color: '#E5E7EB', margin: 0, lineHeight: 1.5, flex: 1 }}>{log.visitor_message}</p>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                        <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#00CFFF', flexShrink: 0, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.04em' }}>IA</span>
+                        <p style={{ fontSize: '0.82rem', color: '#9CA3AF', margin: 0, lineHeight: 1.5, flex: 1, fontStyle: 'italic' }}>{log.agent_reply}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* ---- Notifications Push ---- */}
         <div id="section-push" className={styles.section} style={{ marginTop: 8 }}>

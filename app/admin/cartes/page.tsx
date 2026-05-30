@@ -11,9 +11,28 @@ type CarteProfile = {
   plan: string | null;
   active: boolean;
   created_at: string;
+  extra_chat_messages: number;
 };
 
 const PLANS = ['starter', 'pro', 'business', 'business_team'];
+const MONTHLY_LIMITS: Record<string, number> = { pro: 200, business: 500, business_team: 500 };
+
+function billingCycleStart(createdAt: string): Date {
+  const anchorDay = new Date(createdAt).getDate();
+  const now = new Date();
+  let year = now.getFullYear();
+  let month = now.getMonth();
+  const daysInCurrentMonth = new Date(year, month + 1, 0).getDate();
+  const anniversary = new Date(year, month, Math.min(anchorDay, daysInCurrentMonth));
+  anniversary.setHours(0, 0, 0, 0);
+  if (anniversary > now) {
+    month -= 1;
+    if (month < 0) { month = 11; year -= 1; }
+    const daysInPrevMonth = new Date(year, month + 1, 0).getDate();
+    return new Date(year, month, Math.min(anchorDay, daysInPrevMonth));
+  }
+  return anniversary;
+}
 const PLAN_COLORS: Record<string, string> = {
   starter: 'rgba(108,99,255,0.15)', pro: 'rgba(62,207,207,0.15)', business: 'rgba(212,168,67,0.15)', business_team: 'rgba(34,197,94,0.15)',
 };
@@ -35,6 +54,9 @@ export default function CartesPage() {
   const [saving, setSaving]     = useState(false);
   const [error, setError]       = useState<string | null>(null);
   const [created, setCreated]   = useState<string | null>(null);
+  const [addingMsgs, setAddingMsgs] = useState<string | null>(null);
+  const [renewingId, setRenewingId] = useState<string | null>(null);
+  const [usageCounts, setUsageCounts] = useState<Record<string, number>>({});
 
   useEffect(() => { fetchCartes(); }, []);
 
@@ -42,9 +64,37 @@ export default function CartesPage() {
     setLoading(true);
     const { data } = await supabase
       .from('carte_profiles')
-      .select('id, slug, name, title, company, plan, active, created_at')
+      .select('id, slug, name, title, company, plan, active, created_at, extra_chat_messages')
       .order('created_at', { ascending: false });
-    setCartes(data || []);
+    const profiles = data || [];
+    setCartes(profiles);
+
+    if (profiles.length > 0) {
+      // Fetch all logs since the earliest billing cycle start among all profiles
+      const earliestCycle = profiles.reduce((min: Date, p: CarteProfile) => {
+        const d = billingCycleStart(p.created_at);
+        return d < min ? d : min;
+      }, billingCycleStart(profiles[0].created_at));
+
+      const ids = profiles.map((p: CarteProfile) => p.id);
+      const { data: logs } = await supabase
+        .from('carte_chat_logs')
+        .select('profile_id, created_at')
+        .in('profile_id', ids)
+        .gte('created_at', earliestCycle.toISOString());
+
+      const counts: Record<string, number> = {};
+      (logs || []).forEach((log: { profile_id: string; created_at: string }) => {
+        const profile = profiles.find((p: CarteProfile) => p.id === log.profile_id);
+        if (!profile) return;
+        const cycleStart = billingCycleStart(profile.created_at);
+        if (new Date(log.created_at) >= cycleStart) {
+          counts[log.profile_id] = (counts[log.profile_id] ?? 0) + 1;
+        }
+      });
+      setUsageCounts(counts);
+    }
+
     setLoading(false);
   }
 
@@ -65,6 +115,23 @@ export default function CartesPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ profile_id: id, new_plan: newPlan }),
     });
+  }
+
+  async function renewClient(id: string) {
+    if (!confirm('Confirmer le renouvellement ? Les messages supplémentaires seront remis à 0.')) return;
+    setRenewingId(id);
+    await supabase.from('carte_profiles').update({ extra_chat_messages: 0 }).eq('id', id);
+    setCartes(prev => prev.map(c => c.id === id ? { ...c, extra_chat_messages: 0 } : c));
+    setUsageCounts(prev => ({ ...prev, [id]: 0 }));
+    setRenewingId(null);
+  }
+
+  async function addExtraMessages(id: string, current: number) {
+    setAddingMsgs(id);
+    const newTotal = current + 200;
+    await supabase.from('carte_profiles').update({ extra_chat_messages: newTotal }).eq('id', id);
+    setCartes(prev => prev.map(c => c.id === id ? { ...c, extra_chat_messages: newTotal } : c));
+    setAddingMsgs(null);
   }
 
   function handleNameChange(name: string) {
@@ -154,7 +221,7 @@ export default function CartesPage() {
         <div style={{ overflowX: 'auto' }}>
           <table className="lead-table">
             <thead>
-              <tr><th>Nom</th><th>Poste / Entreprise</th><th>Slug</th><th>Plan</th><th>Créée le</th><th>Statut</th><th>Actions</th></tr>
+              <tr><th>Nom</th><th>Poste / Entreprise</th><th>Slug</th><th>Plan</th><th>Utilisation ce mois</th><th>Créée le</th><th>Statut</th><th>Actions</th></tr>
             </thead>
             <tbody>
               {cartes.map(carte => {
@@ -185,16 +252,55 @@ export default function CartesPage() {
                         {PLANS.map(p => <option key={p} value={p}>{p === 'business_team' ? 'Business Équipe' : p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
                       </select>
                     </td>
+                    <td>
+                      {['pro','business','business_team'].includes(plan) ? (() => {
+                        const limit = (MONTHLY_LIMITS[plan] ?? 0) + (carte.extra_chat_messages ?? 0);
+                        const used = usageCounts[carte.id] ?? 0;
+                        const pct = limit > 0 ? Math.round((used / limit) * 100) : 0;
+                        const barColor = pct >= 100 ? '#EF4444' : pct >= 80 ? '#F59E0B' : '#22C55E';
+                        return (
+                          <div style={{ minWidth: 130 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: '0.75rem' }}>
+                              <span style={{ fontWeight: 600, color: 'var(--text)' }}>{used} / {limit} msgs</span>
+                              <span style={{ color: barColor, fontWeight: 700 }}>{pct}%</span>
+                            </div>
+                            <div style={{ height: 5, background: 'rgba(255,255,255,0.07)', borderRadius: 3, overflow: 'hidden' }}>
+                              <div style={{ height: '100%', width: `${Math.min(pct, 100)}%`, background: barColor, borderRadius: 3, transition: 'width 0.3s' }} />
+                            </div>
+                          </div>
+                        );
+                      })() : <span style={{ color: 'var(--text-faint)', fontSize: '0.8rem' }}>—</span>}
+                    </td>
                     <td style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{new Date(carte.created_at).toLocaleDateString('fr-FR')}</td>
                     <td><span className={`status-badge ${carte.active ? 'status-converted' : 'status-lost'}`}>{carte.active ? 'Active' : 'Inactive'}</span></td>
                     <td>
-                      <div style={{ display: 'flex', gap: 8 }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                         <a href={`https://digitalsucces.tech/c/${carte.slug}`} target="_blank" rel="noreferrer"
                           style={{ fontSize: '0.78rem', color: 'var(--primary)', fontWeight: 600 }}>Voir ↗</a>
                         <button onClick={() => toggleActive(carte.id, carte.active)}
                           style={{ fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none', color: carte.active ? 'var(--accent)' : 'var(--secondary)', padding: 0 }}>
                           {carte.active ? 'Désactiver' : 'Activer'}
                         </button>
+                        {['pro','business','business_team'].includes(plan) && (
+                          <>
+                            <button
+                              onClick={() => addExtraMessages(carte.id, carte.extra_chat_messages ?? 0)}
+                              disabled={addingMsgs === carte.id}
+                              title={`Messages supplémentaires : ${carte.extra_chat_messages ?? 0}`}
+                              style={{ fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', background: 'rgba(0,207,255,0.1)', border: '1px solid rgba(0,207,255,0.3)', color: '#00CFFF', borderRadius: 6, padding: '3px 8px' }}
+                            >
+                              {addingMsgs === carte.id ? '...' : `+200 msgs (${carte.extra_chat_messages ?? 0})`}
+                            </button>
+                            <button
+                              onClick={() => renewClient(carte.id)}
+                              disabled={renewingId === carte.id}
+                              title="Renouveler l'abonnement — remet les extras à 0"
+                              style={{ fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: '#22C55E', borderRadius: 6, padding: '3px 8px' }}
+                            >
+                              {renewingId === carte.id ? '...' : '↺ Renouveler'}
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

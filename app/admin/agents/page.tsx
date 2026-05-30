@@ -6,8 +6,10 @@ type AgentClient = {
   business_name: string;
   active: boolean;
   monthly_message_limit: number;
+  extra_messages: number;
   message_count_month: number;
   message_count_reset_at: string | null;
+  created_at: string | null;
 };
 
 type ServiceRow = { name: string; description: string; price: string; duration: string };
@@ -89,8 +91,34 @@ export default function AgentsPage() {
   const [saving, setSaving]         = useState(false);
   const [formError, setFormError]   = useState<string | null>(null);
   const [created, setCreated]       = useState<string | null>(null);
+  const [addingMsgs, setAddingMsgs] = useState<string | null>(null);
+  const [renewingId, setRenewingId] = useState<string | null>(null);
 
   useEffect(() => { fetchClients(); }, []);
+
+  async function addExtraMessages(client_id: string, currentExtra: number) {
+    setAddingMsgs(client_id);
+    const newExtra = currentExtra + 200;
+    await fetch('/api/admin-agent?path=admin/update-limit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_id, extra_messages: newExtra }),
+    });
+    setClients(prev => prev.map(c => c.client_id === client_id ? { ...c, extra_messages: newExtra } : c));
+    setAddingMsgs(null);
+  }
+
+  async function renewClient(client_id: string) {
+    if (!confirm('Confirmer le renouvellement ? Les messages supplémentaires et le compteur seront remis à 0.')) return;
+    setRenewingId(client_id);
+    await fetch('/api/admin-agent?path=admin/renew', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_id }),
+    });
+    setClients(prev => prev.map(c => c.client_id === client_id ? { ...c, extra_messages: 0, message_count_month: 0 } : c));
+    setRenewingId(null);
+  }
 
   async function toggleActive(client_id: string, active: boolean) {
     await fetch('/api/admin-agent?path=admin/toggle-active', {
@@ -213,11 +241,13 @@ export default function AgentsPage() {
             </thead>
             <tbody>
               {clients.map(client => {
-                const used     = client.message_count_month || 0;
-                const limit    = client.monthly_message_limit || 0;
-                const pct      = limit ? Math.round((used / limit) * 100) : 0;
-                const barColor = pct >= 100 ? 'var(--accent)' : pct >= 80 ? 'var(--gold)' : 'var(--secondary)';
-                const isActive = client.active !== false;
+                const used      = client.message_count_month || 0;
+                const base      = client.monthly_message_limit || 0;
+                const extra     = client.extra_messages || 0;
+                const limit     = base + extra;
+                const pct       = limit ? Math.round((used / limit) * 100) : 0;
+                const barColor  = pct >= 100 ? 'var(--accent)' : pct >= 80 ? 'var(--gold)' : 'var(--secondary)';
+                const isActive  = client.active !== false;
                 return (
                   <tr key={client.client_id}>
                     <td style={{ fontWeight: 600 }}>{client.business_name}</td>
@@ -228,6 +258,7 @@ export default function AgentsPage() {
                           <span style={{ fontSize: '0.8rem', color: 'var(--text)' }}>
                             <strong>{used}</strong>
                             <span style={{ color: 'var(--text-muted)' }}> / {limit || '—'} msgs</span>
+                            {extra > 0 && <span style={{ fontSize: '0.68rem', color: '#00CFFF', marginLeft: 4 }}>(+{extra} extra)</span>}
                           </span>
                           <span style={{ fontSize: '0.75rem', fontWeight: 700, color: barColor }}>
                             {pct >= 100 ? '⚠ ' : pct >= 80 ? '! ' : ''}{pct}%
@@ -249,6 +280,22 @@ export default function AgentsPage() {
                           style={{ fontSize: '0.72rem', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0,
                             color: isActive ? 'var(--accent)' : '#22C55E' }}>
                           {isActive ? '⏸ Suspendre' : '▶ Réactiver'}
+                        </button>
+                        <button
+                          onClick={() => addExtraMessages(client.client_id, extra)}
+                          disabled={addingMsgs === client.client_id}
+                          title={`Messages extra actuels : ${extra}`}
+                          style={{ fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', background: 'rgba(0,207,255,0.1)', border: '1px solid rgba(0,207,255,0.3)', color: '#00CFFF', borderRadius: 6, padding: '3px 8px', textAlign: 'left' }}
+                        >
+                          {addingMsgs === client.client_id ? '...' : `+200 msgs (${extra})`}
+                        </button>
+                        <button
+                          onClick={() => renewClient(client.client_id)}
+                          disabled={renewingId === client.client_id}
+                          title="Renouveler — remet extras et compteur à 0"
+                          style={{ fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: '#22C55E', borderRadius: 6, padding: '3px 8px', textAlign: 'left' }}
+                        >
+                          {renewingId === client.client_id ? '...' : '↺ Renouveler'}
                         </button>
                       </div>
                     </td>

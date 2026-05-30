@@ -23,35 +23,49 @@ async function getProfile(slug: string): Promise<Profile | null> {
 
   if (error || !data) return null;
 
+  // Si carte membre d'équipe → charger les données entreprise de l'owner
+  let src = data;
+  if (data.team_owner_id) {
+    const { data: owner } = await supabaseServer
+      .from("carte_profiles")
+      .select("*, carte_documents(*), carte_portfolio(*), carte_videos(*), carte_links(*)")
+      .eq("user_id", data.team_owner_id)
+      .single();
+    if (owner) src = owner;
+  }
+
   return {
     id: data.id,
     slug: data.slug,
+    plan: data.plan ?? undefined,
+    // Données personnelles → toujours du membre
     name: data.full_name ?? data.name ?? "",
     title: data.job_title ?? data.title ?? "",
-    company: data.company ?? undefined,
-    description: data.description ?? "",
     photo: data.photo_url ?? "",
-    cover: data.cover_url ?? undefined,
-    coverVideo: data.cover_video_url ?? undefined,
     phone: data.phone ?? "",
     email: data.email ?? "",
-    website: data.website ?? undefined,
-    location: data.location ?? undefined,
-    rdv: data.rdv_url ?? undefined,
+    description: data.description ?? "",
+    // Données entreprise → owner si membre, sinon ses propres données
+    company: src.company ?? undefined,
+    cover: src.cover_url ?? undefined,
+    coverVideo: src.cover_video_url ?? undefined,
+    website: src.website ?? undefined,
+    location: src.location ?? undefined,
+    rdv: src.rdv_url ?? undefined,
     socials: {
-      instagram: data.instagram ?? undefined,
-      tiktok: data.tiktok ?? undefined,
-      facebook: data.facebook ?? undefined,
-      linkedin: data.linkedin ?? undefined,
-      youtube: data.youtube ?? undefined,
-      twitter: data.twitter ?? undefined,
+      instagram: src.instagram ?? undefined,
+      tiktok: src.tiktok ?? undefined,
+      facebook: src.facebook ?? undefined,
+      linkedin: src.linkedin ?? undefined,
+      youtube: src.youtube ?? undefined,
+      twitter: src.twitter ?? undefined,
     },
-    documents: (data.carte_documents ?? []).map((d: { name: string; url: string; type: string }) => ({
+    documents: (src.carte_documents ?? []).map((d: { name: string; url: string; type: string }) => ({
       name: d.name,
       url: d.url,
       type: d.type,
     })),
-    portfolio: (data.carte_portfolio ?? [])
+    portfolio: (src.carte_portfolio ?? [])
       .sort((a: { position: number }, b: { position: number }) => a.position - b.position)
       .map((p: { id: string; photo_url: string; caption?: string; position: number }) => ({
         id: p.id,
@@ -59,8 +73,8 @@ async function getProfile(slug: string): Promise<Profile | null> {
         caption: p.caption ?? undefined,
         position: p.position,
       })),
-    portfolioTitle: data.portfolio_title ?? "Nos réalisations",
-    videos: (data.carte_videos ?? [])
+    portfolioTitle: src.portfolio_title ?? "Nos réalisations",
+    videos: (src.carte_videos ?? [])
       .sort((a: { position: number }, b: { position: number }) => a.position - b.position)
       .map((v: { id: string; type: string; url: string; platform?: string; caption?: string; position: number }) => ({
         id: v.id,
@@ -70,7 +84,7 @@ async function getProfile(slug: string): Promise<Profile | null> {
         caption: v.caption ?? undefined,
         position: v.position,
       })),
-    links: (data.carte_links ?? [])
+    links: (src.carte_links ?? [])
       .sort((a: { position: number }, b: { position: number }) => a.position - b.position)
       .map((l: { id: string; label: string; url: string; icon: string | null; position: number }) => ({
         id: l.id,
