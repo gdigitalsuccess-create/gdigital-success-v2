@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import MiniCardPreview from '@/app/dashboard/MiniCardPreview';
 
 type CarteProfile = {
   id: string;
@@ -153,13 +154,18 @@ export default function CartesPage() {
     }
 
     const { error: err } = await supabase.from('carte_profiles').insert({
-      slug:    form.slug,
-      name:    form.name,
-      email:   form.email || null,
-      title:   form.title || null,
-      company: form.company || null,
-      plan:    form.plan,
-      active:  true,
+      slug:            form.slug,
+      name:            form.name,
+      email:           form.email || null,
+      title:           form.title || null,
+      company:         form.company || null,
+      plan:            form.plan,
+      active:          true,
+      bg_color:        theme.bg_color,
+      primary_color:   theme.primary_color,
+      secondary_color: theme.secondary_color,
+      text_color:      theme.text_color,
+      font_heading:    theme.font_heading,
     });
 
     if (err) {
@@ -334,11 +340,11 @@ export default function CartesPage() {
         </div>
       )}
 
-      {/* MODAL */}
+      {/* MODAL CRÉATION */}
       {showModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, overflowY: 'auto' }}
           onClick={e => e.target === e.currentTarget && closeModal()}>
-          <div style={{ background: 'var(--dark-2)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius)', padding: 32, width: '100%', maxWidth: 480 }}>
+          <div style={{ background: 'var(--dark-2)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius)', padding: 32, width: '100%', maxWidth: created ? 480 : 860 }}>
             {created ? (
               <>
                 <h2 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: 8, color: '#22C55E' }}>Carte créée ✓</h2>
@@ -358,59 +364,105 @@ export default function CartesPage() {
             ) : (
               <>
                 <h2 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: 24 }}>Nouveau client — Carte NFC</h2>
-                <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <div>
-                    <label style={labelStyle}>Nom complet *</label>
-                    <input style={inputStyle} placeholder="Jean Dupont" value={form.name}
-                      onChange={e => handleNameChange(e.target.value)} required />
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 32, alignItems: 'start' }}>
+
+                  {/* ── Colonne gauche : formulaire ── */}
+                  <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                     <div>
-                      <label style={labelStyle}>Email du client *</label>
-                      <input style={inputStyle} type="email" placeholder="client@email.com" value={form.email}
-                        onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required />
+                      <label style={labelStyle}>Nom complet *</label>
+                      <input style={inputStyle} placeholder="Jean Dupont" value={form.name}
+                        onChange={e => handleNameChange(e.target.value)} required />
                     </div>
-                    <div>
-                      <label style={labelStyle}>Mot de passe temp. *</label>
-                      <input style={inputStyle} type="text" placeholder="Ex: Client2026!" value={form.password}
-                        onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required />
-                    </div>
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Slug (URL de la carte) *</label>
-                    <div style={{ display: 'flex', alignItems: 'center', background: 'var(--dark-3)', border: '1px solid var(--card-border)', borderRadius: 8, overflow: 'hidden' }}>
-                      <span style={{ padding: '10px 12px', fontSize: '0.78rem', color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>digitalsucces.tech/c/</span>
-                      <input style={{ ...inputStyle, border: 'none', borderRadius: 0, flex: 1, background: 'transparent' }}
-                        placeholder="jean-dupont" value={form.slug}
-                        onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} required />
-                    </div>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <div>
-                      <label style={labelStyle}>Poste</label>
-                      <input style={inputStyle} placeholder="CEO" value={form.title}
-                        onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <div>
+                        <label style={labelStyle}>Email *</label>
+                        <input style={inputStyle} type="email" placeholder="client@email.com" value={form.email}
+                          onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required />
+                      </div>
+                      <div>
+                        <label style={labelStyle}>Mot de passe temp. *</label>
+                        <input style={inputStyle} type="text" placeholder="Client2026!" value={form.password}
+                          onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required />
+                      </div>
                     </div>
                     <div>
-                      <label style={labelStyle}>Entreprise</label>
-                      <input style={inputStyle} placeholder="Acme Corp" value={form.company}
-                        onChange={e => setForm(f => ({ ...f, company: e.target.value }))} />
+                      <label style={labelStyle}>Slug (URL de la carte) *</label>
+                      <div style={{ display: 'flex', alignItems: 'center', background: 'var(--dark-3)', border: '1px solid var(--card-border)', borderRadius: 8, overflow: 'hidden' }}>
+                        <span style={{ padding: '10px 12px', fontSize: '0.78rem', color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>…/c/</span>
+                        <input style={{ ...inputStyle, border: 'none', borderRadius: 0, flex: 1, background: 'transparent' }}
+                          placeholder="jean-dupont" value={form.slug}
+                          onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} required />
+                      </div>
                     </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <div>
+                        <label style={labelStyle}>Poste</label>
+                        <input style={inputStyle} placeholder="CEO" value={form.title}
+                          onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label style={labelStyle}>Entreprise</label>
+                        <input style={inputStyle} placeholder="Acme Corp" value={form.company}
+                          onChange={e => setForm(f => ({ ...f, company: e.target.value }))} />
+                      </div>
+                    </div>
+                    <div>
+                      <label style={labelStyle}>Plan</label>
+                      <select style={inputStyle} value={form.plan} onChange={e => setForm(f => ({ ...f, plan: e.target.value }))}>
+                        {PLANS.map(p => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
+                      </select>
+                    </div>
+
+                    {/* ── Thème ── */}
+                    <div style={{ borderTop: '1px solid var(--card-border)', paddingTop: 14 }}>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>🎨 Thème de la carte</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                        {([
+                          { key: 'bg_color' as const,        label: 'Fond' },
+                          { key: 'primary_color' as const,   label: 'Couleur principale' },
+                          { key: 'secondary_color' as const, label: 'Couleur secondaire' },
+                          { key: 'text_color' as const,      label: 'Texte' },
+                        ]).map(({ key, label }) => (
+                          <div key={key}>
+                            <label style={labelStyle}>{label}</label>
+                            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                              <input type="color" value={theme[key]} onChange={e => setTheme(t => ({ ...t, [key]: e.target.value }))}
+                                style={{ width: 32, height: 32, borderRadius: 6, border: '1px solid var(--card-border)', cursor: 'pointer', padding: 2, background: 'none', flexShrink: 0 }} />
+                              <input style={{ ...inputStyle, flex: 1, fontFamily: 'monospace', fontSize: '0.78rem', padding: '8px 10px' }}
+                                value={theme[key]} onChange={e => setTheme(t => ({ ...t, [key]: e.target.value }))} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ marginTop: 10 }}>
+                        <label style={labelStyle}>Police</label>
+                        <select style={inputStyle} value={theme.font_heading} onChange={e => setTheme(t => ({ ...t, font_heading: e.target.value }))}>
+                          {FONTS.map(f => <option key={f} value={f}>{f}</option>)}
+                        </select>
+                      </div>
+                    </div>
+
+                    {error && <p style={{ color: 'var(--accent)', fontSize: '0.82rem' }}>{error}</p>}
+                    <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                      <button type="button" className="btn btn-outline" onClick={closeModal} style={{ flex: 1 }}>Annuler</button>
+                      <button type="submit" className="btn btn-primary" disabled={saving} style={{ flex: 1 }}>
+                        {saving ? 'Création...' : 'Créer la carte'}
+                      </button>
+                    </div>
+                  </form>
+
+                  {/* ── Colonne droite : aperçu ── */}
+                  <div style={{ position: 'sticky', top: 24 }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12, textAlign: 'center' }}>
+                      Aperçu temps réel
+                    </div>
+                    <MiniCardPreview
+                      form={{ name: form.name, title: form.title, company: form.company, phone: '', email: form.email, website: '', location: '' }}
+                      profile={{ photo_url: '', cover_url: '', cover_video_url: '', slug: form.slug }}
+                      theme={theme}
+                    />
                   </div>
-                  <div>
-                    <label style={labelStyle}>Plan</label>
-                    <select style={inputStyle} value={form.plan} onChange={e => setForm(f => ({ ...f, plan: e.target.value }))}>
-                      {PLANS.map(p => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
-                    </select>
-                  </div>
-                  {error && <p style={{ color: 'var(--accent)', fontSize: '0.82rem' }}>{error}</p>}
-                  <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                    <button type="button" className="btn btn-outline" onClick={closeModal} style={{ flex: 1 }}>Annuler</button>
-                    <button type="submit" className="btn btn-primary" disabled={saving} style={{ flex: 1 }}>
-                      {saving ? 'Création...' : 'Créer la carte'}
-                    </button>
-                  </div>
-                </form>
+                </div>
               </>
             )}
           </div>

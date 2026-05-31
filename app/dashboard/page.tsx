@@ -26,6 +26,8 @@ type Profile = {
   linkedin: string;
   youtube: string;
   twitter: string;
+  snapchat: string;
+  telegram: string;
   plan: string;
   ai_instructions: string;
 };
@@ -119,7 +121,7 @@ function detectVideoPlatform(url: string): string {
 const EMPTY_FORM = {
   name: '', title: '', company: '', description: '',
   phone: '', email: '', website: '', location: '', rdv_url: '',
-  instagram: '', tiktok: '', facebook: '', linkedin: '', youtube: '', twitter: '',
+  instagram: '', tiktok: '', facebook: '', linkedin: '', youtube: '', twitter: '', snapchat: '', telegram: '',
   ai_instructions: '',
 };
 
@@ -147,6 +149,8 @@ function generateSignatureHTML(profile: Profile): string {
   if (profile.tiktok)    socials.push({ label: 'TikTok',    url: `https://tiktok.com/@${profile.tiktok}`, bg: '#010101' });
   if (profile.youtube)   socials.push({ label: 'YouTube',   url: `https://youtube.com/@${profile.youtube}`, bg: '#FF0000' });
   if (profile.twitter)   socials.push({ label: 'X',         url: `https://twitter.com/${profile.twitter}`, bg: '#000000' });
+  if (profile.snapchat)  socials.push({ label: 'Snapchat',  url: `https://snapchat.com/add/${profile.snapchat}`, bg: '#FFFC00' });
+  if (profile.telegram)  socials.push({ label: 'Telegram',  url: `https://t.me/${profile.telegram}`, bg: '#2AABEE' });
 
   const photoHtml = profile.photo_url
     ? `<td style="padding-right:20px;vertical-align:top;padding-top:4px"><img src="${profile.photo_url}" width="80" height="80" alt="${profile.name}" style="border-radius:50%;display:block;width:80px;height:80px;object-fit:cover;border:2px solid #D4A843" /></td>`
@@ -378,6 +382,8 @@ export default function DashboardPage() {
         linkedin:        data.linkedin        ?? '',
         youtube:         data.youtube         ?? '',
         twitter:         data.twitter         ?? '',
+        snapchat:        data.snapchat        ?? '',
+        telegram:        data.telegram        ?? '',
         ai_instructions: data.ai_instructions ?? '',
       });
       const { data: { session } } = await supabase.auth.getSession();
@@ -1274,12 +1280,14 @@ export default function DashboardPage() {
         <div id="section-socials" className={styles.section}>
           <p className={styles.sectionTitle}>Réseaux sociaux</p>
           {[
-            { key: 'instagram' as const, label: 'Instagram',   prefix: 'instagram.com/',   ph: 'monpseudo' },
-            { key: 'tiktok'    as const, label: 'TikTok',      prefix: 'tiktok.com/@',     ph: 'monpseudo' },
-            { key: 'facebook'  as const, label: 'Facebook',    prefix: 'facebook.com/',    ph: 'monpseudo' },
-            { key: 'linkedin'  as const, label: 'LinkedIn',    prefix: 'linkedin.com/in/', ph: 'monpseudo' },
-            { key: 'youtube'   as const, label: 'YouTube',     prefix: 'youtube.com/@',    ph: 'monpseudo' },
-            { key: 'twitter'   as const, label: 'X / Twitter', prefix: 'twitter.com/',     ph: 'monpseudo' },
+            { key: 'instagram' as const, label: 'Instagram',   prefix: 'instagram.com/',      ph: 'monpseudo' },
+            { key: 'tiktok'    as const, label: 'TikTok',      prefix: 'tiktok.com/@',        ph: 'monpseudo' },
+            { key: 'facebook'  as const, label: 'Facebook',    prefix: 'facebook.com/',       ph: 'monpseudo' },
+            { key: 'linkedin'  as const, label: 'LinkedIn',    prefix: 'linkedin.com/in/',    ph: 'monpseudo' },
+            { key: 'youtube'   as const, label: 'YouTube',     prefix: 'youtube.com/@',       ph: 'monpseudo' },
+            { key: 'twitter'   as const, label: 'X / Twitter', prefix: 'twitter.com/',        ph: 'monpseudo' },
+            { key: 'snapchat'  as const, label: 'Snapchat',    prefix: 'snapchat.com/add/',   ph: 'monpseudo' },
+            { key: 'telegram'  as const, label: 'Telegram',    prefix: 't.me/',               ph: 'monpseudo' },
           ].map(({ key, label, prefix, ph }) => (
             <div className={styles.field} key={key}>
               <label className={styles.label}>{label}</label>
