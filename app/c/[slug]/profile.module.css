@@ -1,13 +1,26 @@
 /* Profile card page — /c/[slug] */
 
 .page {
+  /* ── Thème dynamique : injecté via style={{ }} dans ProfileClient ── */
+  --c-bg:               #0D0D1A;
+  --c-card:             #13131F;
+  --c-primary:          #00CFFF;
+  --c-secondary:        #D4A843;
+  --c-text:             #FFFFFF;
+  --c-font:             'Inter', sans-serif;
+  --c-text-on-primary:  #0D0D1A;
+  --c-text-on-secondary:#0D0D1A;
+  --c-primary-10:       color-mix(in srgb, var(--c-primary) 10%, transparent);
+  --c-primary-30:       color-mix(in srgb, var(--c-primary) 30%, transparent);
+  --c-secondary-50:     color-mix(in srgb, var(--c-secondary) 50%, transparent);
+
   min-height: 100vh;
-  background: #0D0D1A;
+  background: var(--c-bg);
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 32px 16px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--c-font);
 }
 
 .inner {
@@ -31,7 +44,7 @@
 
 /* Main card */
 .card {
-  background: #13131F;
+  background: var(--c-card);
   border-radius: 24px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -71,13 +84,13 @@
 .avatarRing {
   padding: 3px;
   border-radius: 50%;
-  background: #00CFFF;
-  box-shadow: 0 8px 24px rgba(0, 207, 255, 0.35);
+  background: var(--c-primary);
+  box-shadow: 0 8px 24px var(--c-primary-30);
 }
 .avatarInner {
   padding: 3px;
   border-radius: 50%;
-  background: #13131F;
+  background: var(--c-card);
 }
 .avatarImg {
   width: 96px;
@@ -97,7 +110,7 @@
   gap: 6px;
 }
 .name {
-  color: white;
+  color: var(--c-text);
   font-weight: 700;
   font-size: 1.5rem;
   text-align: center;
@@ -110,20 +123,20 @@
   text-align: center;
 }
 .company {
-  color: #00CFFF;
+  color: var(--c-primary);
 }
 .saveBtn {
   margin-top: 16px;
   width: 100%;
-  background: #00CFFF;
-  color: #0D0D1A;
+  background: var(--c-primary);
+  color: var(--c-text-on-primary);
   font-weight: 700;
   border-radius: 9999px;
   padding: 12px 24px;
   text-align: center;
   font-size: 0.875rem;
   letter-spacing: 0.025em;
-  box-shadow: 0 4px 12px rgba(0, 207, 255, 0.3);
+  box-shadow: 0 4px 12px var(--c-primary-30);
   text-decoration: none;
   display: block;
   transition: filter 0.2s;
@@ -197,7 +210,7 @@
   background: rgba(212, 168, 67, 0.15);
 }
 .contactText {
-  color: white;
+  color: var(--c-text);
   font-size: 0.875rem;
 }
 
@@ -219,7 +232,7 @@
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: rgba(0, 207, 255, 0.1);
+  background: var(--c-primary-10);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -264,8 +277,8 @@
   gap: 8px;
   width: 100%;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(0, 207, 255, 0.3);
-  color: white;
+  border: 1px solid var(--c-primary-30);
+  color: var(--c-text);
   font-weight: 600;
   border-radius: 9999px;
   padding: 12px 24px;
@@ -274,12 +287,12 @@
   transition: border-color 0.2s;
 }
 .rdvBtn:hover {
-  border-color: #00CFFF;
+  border-color: var(--c-primary);
 }
 
 /* QR card */
 .qrCard {
-  background: #13131F;
+  background: var(--c-card);
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
@@ -309,7 +322,7 @@
   text-align: center;
 }
 .qrUrl {
-  color: #00CFFF;
+  color: var(--c-primary);
   font-size: 0.75rem;
   font-weight: 500;
 }
@@ -322,7 +335,7 @@
   margin-top: 8px;
 }
 .footerAccent {
-  color: #00CFFF;
+  color: var(--c-primary);
   font-weight: 600;
 }
 
@@ -438,7 +451,7 @@
   gap: 8px;
   font-size: 0.88rem;
   font-weight: 700;
-  color: #D4A843;
+  color: var(--c-secondary);
   margin-bottom: 16px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -462,7 +475,7 @@
   box-sizing: border-box;
 }
 .leadInput:focus {
-  border-color: rgba(212,168,67,0.5);
+  border-color: var(--c-secondary-50);
 }
 .leadInput::placeholder {
   color: #4B5563;
@@ -470,10 +483,10 @@
 .leadBtn {
   width: 100%;
   padding: 13px;
-  background: linear-gradient(135deg, #D4A843, #c49535);
+  background: var(--c-secondary);
   border: none;
   border-radius: 50px;
-  color: #0D0D1A;
+  color: var(--c-text-on-secondary);
   font-weight: 800;
   font-size: 0.9rem;
   cursor: pointer;
@@ -564,8 +577,8 @@
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  background: rgba(0,207,255,0.06);
-  border: 1px solid rgba(0,207,255,0.18);
+  background: var(--c-primary-10);
+  border: 1px solid var(--c-primary-30);
   border-radius: 12px;
   padding: 12px 14px;
   font-size: 0.78rem;
@@ -576,7 +589,7 @@
 .pushIosHint svg {
   flex-shrink: 0;
   margin-top: 2px;
-  color: #00CFFF;
+  color: var(--c-primary);
 }
 
 /* Section group title (Réseaux / Contacter) */
@@ -654,8 +667,8 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  background: linear-gradient(135deg, #D4A843, #c49535);
-  color: #0D0D1A;
+  background: var(--c-secondary);
+  color: var(--c-text-on-secondary);
   font-weight: 800;
   border-radius: 9999px;
   padding: 14px 24px;
@@ -670,14 +683,14 @@
   filter: brightness(1.08);
 }
 
-/* Pill — Secondaire (outline cyan) */
+/* Pill — Secondaire (outline primary) */
 .pillSecondary {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
   background: transparent;
-  border: 1.5px solid rgba(0, 207, 255, 0.25);
+  border: 1.5px solid var(--c-primary-30);
   color: #6B7280;
   font-weight: 600;
   border-radius: 9999px;
@@ -685,18 +698,18 @@
   font-size: 0.78rem;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s, color 0.2s;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--c-font);
   width: 100%;
 }
 .pillSecondary:hover {
-  background: rgba(0, 207, 255, 0.06);
-  border-color: rgba(0, 207, 255, 0.5);
-  color: white;
+  background: var(--c-primary-10);
+  border-color: var(--c-primary-30);
+  color: var(--c-text);
 }
 .pillSecondaryActive {
-  background: rgba(0, 207, 255, 0.1);
-  border-color: #00CFFF;
-  color: white;
+  background: var(--c-primary-10);
+  border-color: var(--c-primary);
+  color: var(--c-text);
 }
 
 /* Pill — Tertiaire (sombre discret) */
@@ -758,7 +771,7 @@
 }
 
 .modalContent {
-  background: #13131F;
+  background: var(--c-card);
   border-radius: 24px 24px 0 0;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-bottom: none;
@@ -819,8 +832,8 @@
   transition: background 0.2s, border-color 0.2s;
 }
 .customLink:hover {
-  background: rgba(0, 207, 255, 0.06);
-  border-color: rgba(0, 207, 255, 0.25);
+  background: var(--c-primary-10);
+  border-color: var(--c-primary-30);
 }
 .customLinkIcon {
   font-size: 1.25rem;
@@ -836,10 +849,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0D0D1A;
+  background: var(--c-bg);
 }
 .notFoundText {
-  color: white;
+  color: var(--c-text);
   font-size: 1.25rem;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--c-font);
 }

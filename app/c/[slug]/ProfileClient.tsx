@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './profile.module.css';
 import LeadCaptureForm from './LeadCaptureForm';
 import PushSubscribeButton from './PushSubscribeButton';
@@ -68,6 +68,47 @@ export type Profile = {
   videos?: VideoItem[];
   links?: CustomLink[];
   plan?: string;
+  primary_color?: string;
+  secondary_color?: string;
+  bg_color?: string;
+  text_color?: string;
+  font_heading?: string;
+};
+
+function getLuminance(hex: string): number {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+}
+
+function getContrastText(hex: string): string {
+  return getLuminance(hex) > 0.5 ? '#1A1A2E' : '#FFFFFF';
+}
+
+function getCardColor(bgHex: string): string {
+  const clamp = (n: number) => Math.min(255, Math.max(0, n));
+  const r = parseInt(bgHex.slice(1, 3), 16);
+  const g = parseInt(bgHex.slice(3, 5), 16);
+  const b = parseInt(bgHex.slice(5, 7), 16);
+  const isDark = getLuminance(bgHex) < 0.5;
+  const adj = isDark ? 12 : -15;
+  return '#' + [r, g, b].map(c => clamp(c + adj).toString(16).padStart(2, '0')).join('');
+}
+
+const GOOGLE_FONTS: Record<string, string> = {
+  'Inter': 'Inter:wght@300;400;500;600;700;800;900',
+  'Poppins': 'Poppins:wght@300;400;500;600;700;800',
+  'Montserrat': 'Montserrat:wght@300;400;500;600;700;800;900',
+  'Playfair Display SC': 'Playfair+Display+SC:wght@400;700',
+  'Playfair Display': 'Playfair+Display:wght@400;500;600;700;800',
+  'Cormorant Garamond': 'Cormorant+Garamond:wght@300;400;500;600;700',
+  'Raleway': 'Raleway:wght@300;400;500;600;700;800',
+  'Lato': 'Lato:wght@300;400;700;900',
+  'Roboto': 'Roboto:wght@300;400;500;700;900',
+  'Lora': 'Lora:wght@400;500;600;700',
+  'EB Garamond': 'EB+Garamond:wght@400;500;600;700;800',
+  'Belleza': 'Belleza',
 };
 
 type Props = {
@@ -181,8 +222,43 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
   const hasLinks = !!profile.links?.length;
   const hasSecondary = hasDocuments || hasPortfolio || hasVideos || hasLinks;
 
+  // ── Thème dynamique ──
+  const bgColor        = profile.bg_color        || '#0D0D1A';
+  const primaryColor   = profile.primary_color   || '#00CFFF';
+  const secondaryColor = profile.secondary_color || '#D4A843';
+  const textColor      = profile.text_color      || '#FFFFFF';
+  const fontHeading    = profile.font_heading     || 'Inter';
+  const cardColor      = getCardColor(bgColor);
+  const textOnPrimary  = getContrastText(primaryColor);
+  const textOnSecondary = getContrastText(secondaryColor);
+
+  const themeVars = {
+    '--c-bg': bgColor,
+    '--c-card': cardColor,
+    '--c-primary': primaryColor,
+    '--c-secondary': secondaryColor,
+    '--c-text': textColor,
+    '--c-font': `'${fontHeading}', sans-serif`,
+    '--c-text-on-primary': textOnPrimary,
+    '--c-text-on-secondary': textOnSecondary,
+  } as React.CSSProperties;
+
+  // Chargement dynamique Google Font
+  useEffect(() => {
+    if (fontHeading === 'Inter') return;
+    const fontParam = GOOGLE_FONTS[fontHeading];
+    if (!fontParam) return;
+    const id = `gfont-${fontHeading.replace(/\s+/g, '-')}`;
+    if (document.getElementById(id)) return;
+    const link = document.createElement('link');
+    link.id = id;
+    link.rel = 'stylesheet';
+    link.href = `https://fonts.googleapis.com/css2?family=${fontParam}&display=swap`;
+    document.head.appendChild(link);
+  }, [fontHeading]);
+
   return (
-    <main className={styles.page}>
+    <main className={styles.page} style={themeVars}>
       <VisitTracker profileId={profile.id} />
 
       <div className={styles.inner}>

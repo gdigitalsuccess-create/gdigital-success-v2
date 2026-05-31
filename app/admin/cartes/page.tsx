@@ -45,6 +45,8 @@ function slugify(name: string) {
 }
 
 const EMPTY_FORM = { name: '', slug: '', email: '', password: '', title: '', company: '', plan: 'starter' };
+const EMPTY_THEME = { bg_color: '#0D0D1A', primary_color: '#00CFFF', secondary_color: '#D4A843', text_color: '#FFFFFF', font_heading: 'Inter' };
+const FONTS = ['Inter','Poppins','Montserrat','Playfair Display SC','Playfair Display','Cormorant Garamond','Raleway','Lato','Roboto','Lora','EB Garamond','Belleza'];
 
 export default function CartesPage() {
   const [cartes, setCartes]     = useState<CarteProfile[]>([]);
@@ -57,6 +59,9 @@ export default function CartesPage() {
   const [addingMsgs, setAddingMsgs] = useState<string | null>(null);
   const [renewingId, setRenewingId] = useState<string | null>(null);
   const [usageCounts, setUsageCounts] = useState<Record<string, number>>({});
+  const [themeModal, setThemeModal] = useState<{ id: string; slug: string } | null>(null);
+  const [theme, setTheme]       = useState(EMPTY_THEME);
+  const [savingTheme, setSavingTheme] = useState(false);
 
   useEffect(() => { fetchCartes(); }, []);
 
@@ -197,6 +202,20 @@ export default function CartesPage() {
 
   function closeModal() { setShowModal(false); setError(null); setCreated(null); setForm(EMPTY_FORM); }
 
+  async function saveTheme() {
+    if (!themeModal) return;
+    setSavingTheme(true);
+    await supabase.from('carte_profiles').update({
+      bg_color: theme.bg_color,
+      primary_color: theme.primary_color,
+      secondary_color: theme.secondary_color,
+      text_color: theme.text_color,
+      font_heading: theme.font_heading,
+    }).eq('id', themeModal.id);
+    setSavingTheme(false);
+    setThemeModal(null);
+  }
+
   const actives  = cartes.filter(c => c.active).length;
   const inactives = cartes.length - actives;
 
@@ -280,6 +299,10 @@ export default function CartesPage() {
                         <button onClick={() => toggleActive(carte.id, carte.active)}
                           style={{ fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none', color: carte.active ? 'var(--accent)' : 'var(--secondary)', padding: 0 }}>
                           {carte.active ? 'Désactiver' : 'Activer'}
+                        </button>
+                        <button onClick={() => { setThemeModal({ id: carte.id, slug: carte.slug }); setTheme(EMPTY_THEME); }}
+                          style={{ fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none', color: 'var(--text-muted)', padding: 0 }}>
+                          🎨 Thème
                         </button>
                         {['pro','business','business_team'].includes(plan) && (
                           <>
@@ -390,6 +413,50 @@ export default function CartesPage() {
                 </form>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Thème ── */}
+      {themeModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 440 }}>
+            <h3 style={{ color: 'var(--text)', marginBottom: 20, fontSize: '1rem' }}>🎨 Thème — {themeModal.slug}</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+              {([
+                { key: 'bg_color', label: 'Fond (Background)' },
+                { key: 'primary_color', label: 'Couleur principale' },
+                { key: 'secondary_color', label: 'Couleur secondaire' },
+                { key: 'text_color', label: 'Texte' },
+              ] as { key: keyof typeof theme; label: string }[]).map(({ key, label }) => (
+                <div key={key}>
+                  <label style={labelStyle}>{label}</label>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <input type="color" value={theme[key]} onChange={e => setTheme(t => ({ ...t, [key]: e.target.value }))}
+                      style={{ width: 36, height: 36, borderRadius: 6, border: '1px solid var(--card-border)', cursor: 'pointer', padding: 2, background: 'none' }} />
+                    <input style={{ ...inputStyle, flex: 1, fontFamily: 'monospace', fontSize: '0.8rem' }}
+                      value={theme[key]} onChange={e => setTheme(t => ({ ...t, [key]: e.target.value }))} placeholder="#000000" />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <label style={labelStyle}>Police (Google Font)</label>
+              <select style={inputStyle} value={theme.font_heading} onChange={e => setTheme(t => ({ ...t, font_heading: e.target.value }))}>
+                {FONTS.map(f => <option key={f} value={f}>{f}</option>)}
+              </select>
+            </div>
+            <div style={{ background: 'var(--dark-3)', borderRadius: 10, padding: '12px 16px', marginBottom: 16, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              Aperçu : <span style={{ color: theme.primary_color, fontWeight: 700 }}>Couleur principale</span> &nbsp;|&nbsp;
+              <span style={{ color: theme.secondary_color, fontWeight: 700 }}>Secondaire</span> &nbsp;|&nbsp;
+              <span style={{ background: theme.bg_color, color: theme.text_color, padding: '2px 8px', borderRadius: 4 }}>Texte sur fond</span>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="btn btn-outline" onClick={() => setThemeModal(null)} style={{ flex: 1 }}>Annuler</button>
+              <button className="btn btn-primary" onClick={saveTheme} disabled={savingTheme} style={{ flex: 1 }}>
+                {savingTheme ? 'Sauvegarde...' : 'Appliquer le thème'}
+              </button>
+            </div>
           </div>
         </div>
       )}
