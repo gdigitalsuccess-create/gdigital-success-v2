@@ -476,6 +476,7 @@ export default function CartesPage() {
                       form={{ name: form.name, title: form.title, company: form.company, phone: '', email: form.email, website: '', location: '' }}
                       profile={{ photo_url: '', cover_url: '', cover_video_url: '', slug: form.slug }}
                       theme={theme}
+                      showLink={false}
                     />
                   </div>
                 </div>

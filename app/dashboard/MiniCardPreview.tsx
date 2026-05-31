@@ -31,6 +31,7 @@ type Props = {
   form: FormData;
   profile: ProfileData;
   theme?: Theme;
+  showLink?: boolean;
 };
 
 const GOOGLE_FONTS: Record<string, string> = {
@@ -86,7 +87,7 @@ const CONTACT_BTNS = [
   { label: 'Localisation', bg: '#EA4335', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" width="14" height="14"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>` },
 ];
 
-export default function MiniCardPreview({ form, profile, theme = {} }: Props) {
+export default function MiniCardPreview({ form, profile, theme = {}, showLink = true }: Props) {
   const bg        = theme.bg_color        || '#0D0D1A';
   const primary   = theme.primary_color   || '#00CFFF';
   const secondary = theme.secondary_color || '#D4A843';
@@ -195,7 +196,7 @@ export default function MiniCardPreview({ form, profile, theme = {} }: Props) {
       </div>
 
       {/* Lien plein écran */}
-      {profile.slug && (
+      {showLink && profile.slug && (
         <a href={cardUrl} target="_blank" rel="noopener noreferrer"
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10, padding: '8px', borderRadius: 10, background: `${primary}12`, border: `1px solid ${primary}30`, color: primary, fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13">
