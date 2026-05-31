@@ -155,34 +155,32 @@ export default function CartesPage() {
       setSaving(false); return;
     }
 
-    // Étape 1 : insert de base (colonnes garanties existantes)
-    const { error: err } = await supabase.from('carte_profiles').insert({
-      slug:            form.slug,
-      name:            form.name,
-      email:           form.email || null,
-      title:           form.title || null,
-      company:         form.company || null,
-      plan:            form.plan,
-      active:          true,
-      bg_color:        theme.bg_color,
-      primary_color:   theme.primary_color,
-      secondary_color: theme.secondary_color,
-      text_color:      theme.text_color,
-      font_heading:    theme.font_heading,
+    // Insert via API route (service role — bypass RLS)
+    const createRes = await fetch('/api/admin/create-carte', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        slug:            form.slug,
+        name:            form.name,
+        email:           form.email,
+        title:           form.title,
+        company:         form.company,
+        plan:            form.plan,
+        bg_color:        theme.bg_color,
+        primary_color:   theme.primary_color,
+        secondary_color: theme.secondary_color,
+        text_color:      theme.text_color,
+        font_heading:    theme.font_heading,
+        logo_url:        theme.logo_url || null,
+        logo_position:   theme.logo_position,
+      }),
     });
 
-    if (err) {
-      setError(err.message.includes('unique') ? 'Ce slug est déjà utilisé.' : err.message);
+    if (!createRes.ok) {
+      const createErr = await createRes.json();
+      setError(createErr.error || 'Erreur création du profil.');
       setSaving(false);
       return;
-    }
-
-    // Étape 2 : update logo (colonnes optionnelles, échec silencieux si absentes)
-    if (theme.logo_url || theme.logo_position !== 'center') {
-      await supabase.from('carte_profiles').update({
-        logo_url:      theme.logo_url || null,
-        logo_position: theme.logo_position,
-      }).eq('slug', form.slug);
     }
 
     // Créer le compte Supabase Auth + lier au profil
