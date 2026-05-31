@@ -13,6 +13,7 @@ type CarteProfile = {
   active: boolean;
   created_at: string;
   extra_chat_messages: number;
+  user_id: string | null;
 };
 
 const PLANS = ['starter', 'pro', 'business', 'business_team'];
@@ -65,6 +66,8 @@ export default function CartesPage() {
   const [savingTheme, setSavingTheme] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [fullscreenPreview, setFullscreenPreview] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<CarteProfile | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => { fetchCartes(); }, []);
 
@@ -72,7 +75,7 @@ export default function CartesPage() {
     setLoading(true);
     const { data } = await supabase
       .from('carte_profiles')
-      .select('id, slug, name, title, company, plan, active, created_at, extra_chat_messages')
+      .select('id, slug, name, title, company, plan, active, created_at, extra_chat_messages, user_id')
       .order('created_at', { ascending: false });
     const profiles = data || [];
     setCartes(profiles);
@@ -217,6 +220,23 @@ export default function CartesPage() {
 
   function closeModal() { setShowModal(false); setError(null); setCreated(null); setForm(EMPTY_FORM); }
 
+  async function deleteClient() {
+    if (!deleteConfirm) return;
+    setDeleting(true);
+    await fetch('/api/admin/delete-carte', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        profile_id: deleteConfirm.id,
+        slug:       deleteConfirm.slug,
+        user_id:    deleteConfirm.user_id,
+      }),
+    });
+    setDeleteConfirm(null);
+    setDeleting(false);
+    fetchCartes();
+  }
+
   async function uploadLogo(file: File) {
     if (!themeModal) return;
     setUploadingLogo(true);
@@ -333,6 +353,10 @@ export default function CartesPage() {
                         <button onClick={() => { setThemeModal({ id: carte.id, slug: carte.slug }); setTheme(EMPTY_THEME); }}
                           style={{ fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none', color: 'var(--text-muted)', padding: 0 }}>
                           🎨 Thème
+                        </button>
+                        <button onClick={() => setDeleteConfirm(carte)}
+                          style={{ fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none', color: '#EF4444', padding: 0 }}>
+                          Supprimer
                         </button>
                         {['pro','business','business_team'].includes(plan) && (
                           <>
@@ -549,6 +573,43 @@ export default function CartesPage() {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Confirmation Suppression ── */}
+      {deleteConfirm && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div style={{ background: 'var(--card-bg)', border: '1px solid #EF4444', borderRadius: 16, padding: 32, width: '100%', maxWidth: 420 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+              <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(239,68,68,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" width="20" height="20">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                </svg>
+              </div>
+              <div>
+                <h3 style={{ color: '#EF4444', fontSize: '1rem', fontWeight: 800, margin: 0 }}>Supprimer définitivement</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', margin: 0 }}>{deleteConfirm.name} · {deleteConfirm.slug}</p>
+              </div>
+            </div>
+
+            <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 10, padding: '12px 16px', marginBottom: 20, fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+              Cette action est <strong style={{ color: '#EF4444' }}>irréversible</strong>. Elle supprimera :<br/>
+              • Le profil et toutes les données<br/>
+              • Le compte dashboard du client<br/>
+              • Les photos, logo et documents<br/>
+              • Les logs de conversation IA
+            </div>
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="btn btn-outline" onClick={() => setDeleteConfirm(null)} disabled={deleting} style={{ flex: 1 }}>
+                Annuler
+              </button>
+              <button onClick={deleteClient} disabled={deleting}
+                style={{ flex: 1, padding: '10px', borderRadius: 10, border: 'none', background: '#EF4444', color: 'white', fontWeight: 700, fontSize: '0.875rem', cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.7 : 1 }}>
+                {deleting ? 'Suppression...' : 'Oui, supprimer'}
+              </button>
+            </div>
           </div>
         </div>
       )}
