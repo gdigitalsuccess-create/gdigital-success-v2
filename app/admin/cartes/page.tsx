@@ -46,7 +46,7 @@ function slugify(name: string) {
 }
 
 const EMPTY_FORM = { name: '', slug: '', email: '', password: '', title: '', company: '', plan: 'starter' };
-const EMPTY_THEME = { bg_color: '#0D0D1A', primary_color: '#00CFFF', secondary_color: '#D4A843', text_color: '#FFFFFF', font_heading: 'Inter' };
+const EMPTY_THEME = { bg_color: '#0D0D1A', primary_color: '#00CFFF', secondary_color: '#D4A843', text_color: '#FFFFFF', font_heading: 'Inter', logo_url: '', logo_position: 'center' };
 const FONTS = ['Inter','Poppins','Montserrat','Playfair Display SC','Playfair Display','Cormorant Garamond','Raleway','Lato','Roboto','Lora','EB Garamond','Belleza'];
 
 export default function CartesPage() {
@@ -63,6 +63,7 @@ export default function CartesPage() {
   const [themeModal, setThemeModal] = useState<{ id: string; slug: string } | null>(null);
   const [theme, setTheme]       = useState(EMPTY_THEME);
   const [savingTheme, setSavingTheme] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   useEffect(() => { fetchCartes(); }, []);
 
@@ -208,15 +209,30 @@ export default function CartesPage() {
 
   function closeModal() { setShowModal(false); setError(null); setCreated(null); setForm(EMPTY_FORM); }
 
+  async function uploadLogo(file: File) {
+    if (!themeModal) return;
+    setUploadingLogo(true);
+    const ext = file.name.split('.').pop();
+    const path = `${themeModal.slug}/logo.${ext}`;
+    const { data, error } = await supabase.storage.from('carte-images').upload(path, file, { upsert: true });
+    if (!error && data) {
+      const { data: { publicUrl } } = supabase.storage.from('carte-images').getPublicUrl(path);
+      setTheme(t => ({ ...t, logo_url: publicUrl }));
+    }
+    setUploadingLogo(false);
+  }
+
   async function saveTheme() {
     if (!themeModal) return;
     setSavingTheme(true);
     await supabase.from('carte_profiles').update({
-      bg_color: theme.bg_color,
+      bg_color:      theme.bg_color,
       primary_color: theme.primary_color,
       secondary_color: theme.secondary_color,
-      text_color: theme.text_color,
-      font_heading: theme.font_heading,
+      text_color:    theme.text_color,
+      font_heading:  theme.font_heading,
+      logo_url:      theme.logo_url || null,
+      logo_position: theme.logo_position,
     }).eq('id', themeModal.id);
     setSavingTheme(false);
     setThemeModal(null);
@@ -471,41 +487,89 @@ export default function CartesPage() {
 
       {/* ── Modal Thème ── */}
       {themeModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 440 }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 24, overflowY: 'auto' }}>
+          <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 500 }}>
             <h3 style={{ color: 'var(--text)', marginBottom: 20, fontSize: '1rem' }}>🎨 Thème — {themeModal.slug}</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+
+            {/* Couleurs */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
               {([
-                { key: 'bg_color', label: 'Fond (Background)' },
+                { key: 'bg_color', label: 'Fond' },
                 { key: 'primary_color', label: 'Couleur principale' },
                 { key: 'secondary_color', label: 'Couleur secondaire' },
                 { key: 'text_color', label: 'Texte' },
               ] as { key: keyof typeof theme; label: string }[]).map(({ key, label }) => (
                 <div key={key}>
                   <label style={labelStyle}>{label}</label>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <input type="color" value={theme[key]} onChange={e => setTheme(t => ({ ...t, [key]: e.target.value }))}
-                      style={{ width: 36, height: 36, borderRadius: 6, border: '1px solid var(--card-border)', cursor: 'pointer', padding: 2, background: 'none' }} />
-                    <input style={{ ...inputStyle, flex: 1, fontFamily: 'monospace', fontSize: '0.8rem' }}
-                      value={theme[key]} onChange={e => setTheme(t => ({ ...t, [key]: e.target.value }))} placeholder="#000000" />
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <input type="color" value={theme[key] as string} onChange={e => setTheme(t => ({ ...t, [key]: e.target.value }))}
+                      style={{ width: 34, height: 34, borderRadius: 6, border: '1px solid var(--card-border)', cursor: 'pointer', padding: 2, background: 'none', flexShrink: 0 }} />
+                    <input style={{ ...inputStyle, flex: 1, fontFamily: 'monospace', fontSize: '0.78rem', padding: '8px 10px' }}
+                      value={theme[key] as string} onChange={e => setTheme(t => ({ ...t, [key]: e.target.value }))} />
                   </div>
                 </div>
               ))}
             </div>
-            <div style={{ marginBottom: 20 }}>
+
+            {/* Police */}
+            <div style={{ marginBottom: 14 }}>
               <label style={labelStyle}>Police (Google Font)</label>
               <select style={inputStyle} value={theme.font_heading} onChange={e => setTheme(t => ({ ...t, font_heading: e.target.value }))}>
                 {FONTS.map(f => <option key={f} value={f}>{f}</option>)}
               </select>
             </div>
-            <div style={{ background: 'var(--dark-3)', borderRadius: 10, padding: '12px 16px', marginBottom: 16, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Aperçu : <span style={{ color: theme.primary_color, fontWeight: 700 }}>Couleur principale</span> &nbsp;|&nbsp;
+
+            {/* Logo client */}
+            <div style={{ marginBottom: 14 }}>
+              <label style={labelStyle}>Logo du client</label>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
+                {theme.logo_url ? (
+                  <div style={{ background: theme.bg_color, borderRadius: 8, padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 10, border: '1px solid var(--card-border)', flex: 1 }}>
+                    <img src={theme.logo_url} alt="Logo" style={{ height: 32, maxWidth: 100, objectFit: 'contain' }} />
+                    <button onClick={() => setTheme(t => ({ ...t, logo_url: '' }))}
+                      style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
+                      Supprimer
+                    </button>
+                  </div>
+                ) : (
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-faint)' }}>Aucun logo — logo G+Digital affiché</span>
+                )}
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', background: 'var(--dark-3)', border: '1px solid var(--card-border)', borderRadius: 8, padding: '10px 14px' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16" style={{ color: 'var(--primary)', flexShrink: 0 }}>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  {uploadingLogo ? 'Upload en cours...' : 'Cliquer pour uploader le logo (PNG, SVG, JPG)'}
+                </span>
+                <input type="file" accept="image/*" style={{ display: 'none' }} disabled={uploadingLogo}
+                  onChange={e => { const f = e.target.files?.[0]; if (f) uploadLogo(f); }} />
+              </label>
+            </div>
+
+            {/* Position du logo */}
+            <div style={{ marginBottom: 18 }}>
+              <label style={labelStyle}>Position du logo</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {(['left', 'center', 'right'] as const).map(pos => (
+                  <button key={pos} onClick={() => setTheme(t => ({ ...t, logo_position: pos }))}
+                    style={{ flex: 1, padding: '8px', borderRadius: 8, border: `2px solid ${theme.logo_position === pos ? 'var(--primary)' : 'var(--card-border)'}`, background: theme.logo_position === pos ? 'rgba(0,207,255,0.08)' : 'var(--dark-3)', color: theme.logo_position === pos ? 'var(--primary)' : 'var(--text-muted)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, transition: 'all 0.15s' }}>
+                    {pos === 'left' ? '◀ Gauche' : pos === 'center' ? '● Centre' : 'Droite ▶'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Aperçu couleurs */}
+            <div style={{ background: 'var(--dark-3)', borderRadius: 10, padding: '10px 14px', marginBottom: 16, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              <span style={{ color: theme.primary_color, fontWeight: 700 }}>Principale</span> &nbsp;|&nbsp;
               <span style={{ color: theme.secondary_color, fontWeight: 700 }}>Secondaire</span> &nbsp;|&nbsp;
               <span style={{ background: theme.bg_color, color: theme.text_color, padding: '2px 8px', borderRadius: 4 }}>Texte sur fond</span>
             </div>
+
             <div style={{ display: 'flex', gap: 10 }}>
               <button className="btn btn-outline" onClick={() => setThemeModal(null)} style={{ flex: 1 }}>Annuler</button>
-              <button className="btn btn-primary" onClick={saveTheme} disabled={savingTheme} style={{ flex: 1 }}>
+              <button className="btn btn-primary" onClick={saveTheme} disabled={savingTheme || uploadingLogo} style={{ flex: 1 }}>
                 {savingTheme ? 'Sauvegarde...' : 'Appliquer le thème'}
               </button>
             </div>

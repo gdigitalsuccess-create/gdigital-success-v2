@@ -62,6 +62,8 @@ async function getProfile(slug: string): Promise<Profile | null> {
       snapchat: src.snapchat ?? undefined,
       telegram: src.telegram ?? undefined,
     },
+    logo_url: data.logo_url ?? undefined,
+    logo_position: data.logo_position ?? 'center',
     primary_color: data.primary_color ?? undefined,
     secondary_color: data.secondary_color ?? undefined,
     bg_color: data.bg_color ?? undefined,

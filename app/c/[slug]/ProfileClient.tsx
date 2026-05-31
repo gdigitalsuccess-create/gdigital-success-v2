@@ -70,6 +70,8 @@ export type Profile = {
   videos?: VideoItem[];
   links?: CustomLink[];
   plan?: string;
+  logo_url?: string;
+  logo_position?: string;
   primary_color?: string;
   secondary_color?: string;
   bg_color?: string;
@@ -275,8 +277,17 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
 
       <div className={styles.inner}>
         {/* Logo */}
-        <div className={styles.logoBar}>
-          <img src="/assets/logo.png" alt="G+Digital Success" className={styles.logo} />
+        <div className={styles.logoBar} style={{
+          justifyContent: profile.logo_url
+            ? (profile.logo_position === 'left' ? 'flex-start' : profile.logo_position === 'right' ? 'flex-end' : 'center')
+            : 'center'
+        }}>
+          <img
+            src={profile.logo_url || '/assets/logo.png'}
+            alt={profile.logo_url ? (profile.company || profile.name) : 'G+Digital Success'}
+            className={styles.logo}
+            style={profile.logo_url ? { maxHeight: 48, maxWidth: 160, objectFit: 'contain' } : undefined}
+          />
         </div>
 
         <div className={styles.card}>
@@ -296,7 +307,11 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
               <img src={profile.cover} alt="cover" className={styles.coverImg} />
             ) : (
               <div className={styles.coverDefault}>
-                <img src="/assets/logo.png" alt="G+Digital" className={styles.coverDefaultLogo} />
+                <img
+                src={profile.logo_url || '/assets/logo.png'}
+                alt={profile.logo_url ? (profile.company || profile.name) : 'G+Digital'}
+                className={styles.coverDefaultLogo}
+              />
               </div>
             )}
             {profile.photo && (
