@@ -155,6 +155,7 @@ export default function CartesPage() {
       setSaving(false); return;
     }
 
+    // Étape 1 : insert de base (colonnes garanties existantes)
     const { error: err } = await supabase.from('carte_profiles').insert({
       slug:            form.slug,
       name:            form.name,
@@ -168,14 +169,20 @@ export default function CartesPage() {
       secondary_color: theme.secondary_color,
       text_color:      theme.text_color,
       font_heading:    theme.font_heading,
-      logo_url:        theme.logo_url || null,
-      logo_position:   theme.logo_position,
     });
 
     if (err) {
       setError(err.message.includes('unique') ? 'Ce slug est déjà utilisé.' : err.message);
       setSaving(false);
       return;
+    }
+
+    // Étape 2 : update logo (colonnes optionnelles, échec silencieux si absentes)
+    if (theme.logo_url || theme.logo_position !== 'center') {
+      await supabase.from('carte_profiles').update({
+        logo_url:      theme.logo_url || null,
+        logo_position: theme.logo_position,
+      }).eq('slug', form.slug);
     }
 
     // Créer le compte Supabase Auth + lier au profil
@@ -361,9 +368,9 @@ export default function CartesPage() {
 
       {/* MODAL CRÉATION */}
       {showModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, overflowY: 'auto' }}
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 200, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '24px 24px', overflowY: 'auto' }}
           onClick={e => e.target === e.currentTarget && closeModal()}>
-          <div style={{ background: 'var(--dark-2)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius)', padding: 32, width: '100%', maxWidth: created ? 480 : 860 }}>
+          <div style={{ background: 'var(--dark-2)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius)', padding: 32, width: '100%', maxWidth: created ? 480 : 860, marginTop: 'auto', marginBottom: 'auto' }}>
             {created ? (
               <>
                 <h2 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: 8, color: '#22C55E' }}>Carte créée ✓</h2>
