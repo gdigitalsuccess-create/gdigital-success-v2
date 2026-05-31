@@ -168,6 +168,8 @@ export default function CartesPage() {
       secondary_color: theme.secondary_color,
       text_color:      theme.text_color,
       font_heading:    theme.font_heading,
+      logo_url:        theme.logo_url || null,
+      logo_position:   theme.logo_position,
     });
 
     if (err) {
@@ -456,6 +458,56 @@ export default function CartesPage() {
                         <select style={inputStyle} value={theme.font_heading} onChange={e => setTheme(t => ({ ...t, font_heading: e.target.value }))}>
                           {FONTS.map(f => <option key={f} value={f}>{f}</option>)}
                         </select>
+                      </div>
+
+                      {/* Logo */}
+                      <div style={{ marginTop: 10 }}>
+                        <label style={labelStyle}>Logo du client</label>
+                        {theme.logo_url ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--dark-3)', borderRadius: 8, padding: '8px 12px', border: '1px solid var(--card-border)', marginBottom: 6 }}>
+                            <img src={theme.logo_url} alt="Logo" style={{ height: 28, maxWidth: 90, objectFit: 'contain' }} />
+                            <button type="button" onClick={() => setTheme(t => ({ ...t, logo_url: '' }))}
+                              style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
+                              Supprimer
+                            </button>
+                          </div>
+                        ) : null}
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', background: 'var(--dark-3)', border: '1px solid var(--card-border)', borderRadius: 8, padding: '9px 12px' }}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" style={{ color: 'var(--primary)', flexShrink: 0 }}>
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                          </svg>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                            {uploadingLogo ? 'Upload...' : theme.logo_url ? 'Changer le logo' : 'Uploader le logo (PNG, SVG, JPG)'}
+                          </span>
+                          <input type="file" accept="image/*" style={{ display: 'none' }} disabled={uploadingLogo}
+                            onChange={async e => {
+                              const file = e.target.files?.[0];
+                              if (!file || !form.slug) return;
+                              setUploadingLogo(true);
+                              const ext = file.name.split('.').pop();
+                              const path = `${form.slug}/logo.${ext}`;
+                              const { data, error: upErr } = await supabase.storage.from('carte-images').upload(path, file, { upsert: true });
+                              if (!upErr && data) {
+                                const { data: { publicUrl } } = supabase.storage.from('carte-images').getPublicUrl(path);
+                                setTheme(t => ({ ...t, logo_url: publicUrl }));
+                              }
+                              setUploadingLogo(false);
+                            }} />
+                        </label>
+                        {!form.slug && <p style={{ fontSize: '0.72rem', color: 'var(--accent)', marginTop: 4 }}>Remplissez le nom pour activer l&apos;upload</p>}
+                      </div>
+
+                      {/* Position logo */}
+                      <div style={{ marginTop: 10 }}>
+                        <label style={labelStyle}>Position du logo</label>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          {(['left', 'center', 'right'] as const).map(pos => (
+                            <button type="button" key={pos} onClick={() => setTheme(t => ({ ...t, logo_position: pos }))}
+                              style={{ flex: 1, padding: '7px', borderRadius: 8, border: `2px solid ${theme.logo_position === pos ? 'var(--primary)' : 'var(--card-border)'}`, background: theme.logo_position === pos ? 'rgba(0,207,255,0.08)' : 'var(--dark-3)', color: theme.logo_position === pos ? 'var(--primary)' : 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
+                              {pos === 'left' ? '◀ Gauche' : pos === 'center' ? '● Centre' : 'Droite ▶'}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
