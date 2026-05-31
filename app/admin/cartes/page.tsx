@@ -64,6 +64,7 @@ export default function CartesPage() {
   const [theme, setTheme]       = useState(EMPTY_THEME);
   const [savingTheme, setSavingTheme] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [fullscreenPreview, setFullscreenPreview] = useState(false);
 
   useEffect(() => { fetchCartes(); }, []);
 
@@ -469,8 +470,17 @@ export default function CartesPage() {
 
                   {/* ── Colonne droite : aperçu ── */}
                   <div style={{ position: 'sticky', top: 24 }}>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12, textAlign: 'center' }}>
-                      Aperçu temps réel
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                        Aperçu temps réel
+                      </div>
+                      <button onClick={() => setFullscreenPreview(true)}
+                        style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.75rem', fontWeight: 600, color: 'var(--primary)', background: 'rgba(0,207,255,0.08)', border: '1px solid rgba(0,207,255,0.2)', borderRadius: 6, padding: '5px 10px', cursor: 'pointer' }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13">
+                          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                        </svg>
+                        Plein écran
+                      </button>
                     </div>
                     <MiniCardPreview
                       form={{ name: form.name, title: form.title, company: form.company, phone: '', email: form.email, website: '', location: '' }}
@@ -482,6 +492,26 @@ export default function CartesPage() {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Overlay aperçu plein écran ── */}
+      {fullscreenPreview && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+          onClick={() => setFullscreenPreview(false)}>
+          <div style={{ position: 'relative', width: '100%', maxWidth: 390, maxHeight: '90vh', overflowY: 'auto', borderRadius: 20 }}
+            onClick={e => e.stopPropagation()}>
+            <button onClick={() => setFullscreenPreview(false)}
+              style={{ position: 'absolute', top: 12, right: 12, zIndex: 10, background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: 32, height: 32, color: 'white', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              ✕
+            </button>
+            <MiniCardPreview
+              form={{ name: form.name, title: form.title, company: form.company, phone: '00000000', email: form.email, website: 'example.com', location: 'Votre ville' }}
+              profile={{ photo_url: '', cover_url: '', cover_video_url: '', slug: form.slug }}
+              theme={theme}
+              showLink={false}
+            />
           </div>
         </div>
       )}
