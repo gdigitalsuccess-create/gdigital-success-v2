@@ -636,8 +636,8 @@ export default function CartesPage() {
 
       {/* ── Modal Thème ── */}
       {themeModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 24, overflowY: 'auto' }}>
-          <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 500 }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 1000, padding: 24, overflowY: 'auto' }}>
+          <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 500, marginTop: 'auto', marginBottom: 'auto' }}>
             <h3 style={{ color: 'var(--text)', marginBottom: 20, fontSize: '1rem' }}>🎨 Thème — {themeModal.slug}</h3>
 
             {/* Couleurs */}
