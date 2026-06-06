@@ -219,6 +219,11 @@ export default function DashboardPage() {
   const [requestingUpgrade, setRequestingUpgrade] = useState(false);
   const [upgradeMsg, setUpgradeMsg]         = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
+  // Active section (tab navigation)
+  const [activeSection, setActiveSection] = useState('section-profil');
+  const FORM_SECTIONS = new Set(['section-profil','section-contact','section-rdv','section-labels','section-socials','section-agent-ia']);
+  const PREVIEW_SECTIONS = new Set(['section-profil','section-contact','section-rdv','section-labels','section-socials','section-liens','section-agent-ia']);
+
   // Password change state
   const [pwdForm, setPwdForm] = useState({ current: '', next: '', confirm: '' });
   const [savingPwd, setSavingPwd] = useState(false);
@@ -1048,9 +1053,10 @@ export default function DashboardPage() {
             { id: 'section-labels',    emoji: '✏️', label: 'Labels' },
             { id: 'section-socials',   emoji: '🔗', label: 'Réseaux sociaux' },
           ].map(item => (
-            <a key={item.id} href={`#${item.id}`} className={styles.sidebarLink}>
+            <button key={item.id} type="button" onClick={() => setActiveSection(item.id)}
+              className={`${styles.sidebarLink} ${activeSection === item.id ? styles.sidebarLinkActive : ''}`}>
               <span>{item.emoji}</span>{item.label}
-            </a>
+            </button>
           ))}
           <div className={styles.sidebarDivider} />
           {[
@@ -1061,9 +1067,10 @@ export default function DashboardPage() {
             { id: 'section-videos',     emoji: '🎬', label: 'Vidéos' },
             ...(['pro','business','business_team'].includes(plan) ? [{ id: 'section-agent-ia', emoji: '🤖', label: 'Assistant IA' }] : []),
           ].map(item => (
-            <a key={item.id} href={`#${item.id}`} className={styles.sidebarLink}>
+            <button key={item.id} type="button" onClick={() => setActiveSection(item.id)}
+              className={`${styles.sidebarLink} ${activeSection === item.id ? styles.sidebarLinkActive : ''}`}>
               <span>{item.emoji}</span>{item.label}
-            </a>
+            </button>
           ))}
           <div className={styles.sidebarDivider} />
           {[
@@ -1074,81 +1081,84 @@ export default function DashboardPage() {
             { id: 'section-plan',         emoji: '⭐', label: 'Mon plan' },
             { id: 'section-password',     emoji: '🔒', label: 'Mot de passe' },
           ].map(item => (
-            <a key={item.id} href={`#${item.id}`} className={styles.sidebarLink}>
+            <button key={item.id} type="button" onClick={() => setActiveSection(item.id)}
+              className={`${styles.sidebarLink} ${activeSection === item.id ? styles.sidebarLinkActive : ''}`}>
               <span>{item.emoji}</span>{item.label}
-            </a>
+            </button>
           ))}
         </aside>
 
         {/* Contenu principal */}
         <div className={styles.mainContent}>
 
-      {/* Cover photo / video */}
-      <div className={styles.coverSection}>
-        {profile.cover_video_url
-          ? <video src={profile.cover_video_url} autoPlay muted loop playsInline className={styles.coverImg} style={{ objectFit: 'cover', width: '100%', height: 144, display: 'block' }} />
-          : profile.cover_url
-            ? <img src={profile.cover_url} alt="cover" className={styles.coverImg} />
-            : <div className={styles.coverDefault} />}
-        <div className={styles.coverOverlay} style={{ flexDirection: 'row', justifyContent: 'center', gap: 10 }}>
-          <button type="button" onClick={() => coverInputRef.current?.click()}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 8, padding: '7px 13px', color: 'white', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" width="15" height="15">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-              <circle cx="12" cy="13" r="4"/>
-            </svg>
-            {uploadingCover ? '...' : 'Photo'}
-          </button>
-          {plan === 'starter' ? (
-            <button type="button" onClick={() => setUpgradeTarget('pro')}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(212,168,67,0.4)', borderRadius: 8, padding: '7px 13px', color: '#D4A843', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
-              🔒 Vidéo — Pro
-            </button>
-          ) : (
-            <button type="button" onClick={() => coverVideoInputRef.current?.click()}
+      {/* Cover photo / video — profil uniquement */}
+      {activeSection === 'section-profil' && (
+        <div className={styles.coverSection}>
+          {profile.cover_video_url
+            ? <video src={profile.cover_video_url} autoPlay muted loop playsInline className={styles.coverImg} style={{ objectFit: 'cover', width: '100%', height: 144, display: 'block' }} />
+            : profile.cover_url
+              ? <img src={profile.cover_url} alt="cover" className={styles.coverImg} />
+              : <div className={styles.coverDefault} />}
+          <div className={styles.coverOverlay} style={{ flexDirection: 'row', justifyContent: 'center', gap: 10 }}>
+            <button type="button" onClick={() => coverInputRef.current?.click()}
               style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 8, padding: '7px 13px', color: 'white', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" width="15" height="15">
-                <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
               </svg>
-              {uploadingCoverVideo ? '...' : 'Vidéo'}
+              {uploadingCover ? '...' : 'Photo'}
             </button>
-          )}
+            {plan === 'starter' ? (
+              <button type="button" onClick={() => setUpgradeTarget('pro')}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(212,168,67,0.4)', borderRadius: 8, padding: '7px 13px', color: '#D4A843', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
+                🔒 Vidéo — Pro
+              </button>
+            ) : (
+              <button type="button" onClick={() => coverVideoInputRef.current?.click()}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 8, padding: '7px 13px', color: 'white', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" width="15" height="15">
+                  <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                </svg>
+                {uploadingCoverVideo ? '...' : 'Vidéo'}
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Avatar */}
-      <div className={styles.avatarSection}>
-        <div className={styles.avatarWrap} onClick={() => photoInputRef.current?.click()}>
-          <div className={styles.avatarRing}>
-            <div className={styles.avatarInner}>
-              {profile.photo_url
-                ? <img src={profile.photo_url} alt={profile.name} className={styles.avatarImg} />
-                : <div className={styles.avatarPlaceholder}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.5" width="36" height="36">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                      <circle cx="12" cy="7" r="4"/>
-                    </svg>
-                  </div>}
+      {/* Avatar + Plan badge — profil uniquement */}
+      <div style={{ display: activeSection === 'section-profil' ? 'block' : 'none' }}>
+        <div className={styles.avatarSection}>
+          <div className={styles.avatarWrap} onClick={() => photoInputRef.current?.click()}>
+            <div className={styles.avatarRing}>
+              <div className={styles.avatarInner}>
+                {profile.photo_url
+                  ? <img src={profile.photo_url} alt={profile.name} className={styles.avatarImg} />
+                  : <div className={styles.avatarPlaceholder}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.5" width="36" height="36">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                      </svg>
+                    </div>}
+              </div>
+            </div>
+            <div className={styles.avatarOverlay}>
+              <span className={styles.uploadingLabel}>
+                {uploadingPhoto ? '...' : (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" width="20" height="20">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                    <circle cx="12" cy="13" r="4"/>
+                  </svg>
+                )}
+              </span>
             </div>
           </div>
-          <div className={styles.avatarOverlay}>
-            <span className={styles.uploadingLabel}>
-              {uploadingPhoto ? '...' : (
-                <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" width="20" height="20">
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                  <circle cx="12" cy="13" r="4"/>
-                </svg>
-              )}
-            </span>
-          </div>
         </div>
-      </div>
-
-      {/* Plan badge */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-        <span className={styles.planBadge} style={{ background: planStyle.bg, color: planStyle.color }}>
-          Plan {plan}
-        </span>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+          <span className={styles.planBadge} style={{ background: planStyle.bg, color: planStyle.color }}>
+            Plan {plan}
+          </span>
+        </div>
       </div>
 
       {/* ---- Section Mon Plan ---- */}
@@ -1169,7 +1179,7 @@ export default function DashboardPage() {
         return (
           <>
           {stats && (currentPlan === 'pro' || currentPlan === 'business') && (
-            <div className={styles.body} style={{ marginTop: 8 }}>
+            <div className={styles.body} style={{ marginTop: 8, display: activeSection === 'section-profil' ? 'block' : 'none' }}>
               <div className={styles.section}>
                 <p className={styles.sectionTitle} style={{ marginBottom: 14 }}>Statistiques</p>
 
@@ -1224,7 +1234,7 @@ export default function DashboardPage() {
             </div>
           )}
 
-          <div className={styles.body} style={{ marginTop: 8 }}>
+          <div className={styles.body} style={{ marginTop: 8, display: activeSection === 'section-plan' ? 'block' : 'none' }}>
             <div className={styles.section}>
               <p className={styles.sectionTitle}>Mon plan</p>
               {upgradeMsg && (
@@ -1287,7 +1297,7 @@ export default function DashboardPage() {
       })()}
 
       {/* ---- Mot de passe ---- */}
-      <div id="section-password" className={styles.body} style={{ marginTop: 0 }}>
+      <div id="section-password" className={styles.body} style={{ marginTop: 0, display: activeSection === 'section-password' ? 'block' : 'none' }}>
         <div className={styles.section}>
           <p className={styles.sectionTitle}>Changer le mot de passe</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 420 }}>
@@ -1343,10 +1353,10 @@ export default function DashboardPage() {
       )}
 
       {/* Form body */}
-      <form className={styles.body} onSubmit={handleSave}>
+      <form className={styles.body} onSubmit={handleSave} style={{ display: FORM_SECTIONS.has(activeSection) ? 'block' : 'none' }}>
 
         {/* Profil */}
-        <div id="section-profil" className={styles.section}>
+        <div id="section-profil" className={styles.section} style={{ display: activeSection === 'section-profil' ? 'block' : 'none' }}>
           <p className={styles.sectionTitle}>Profil</p>
           <div className={styles.field}>
             <label className={styles.label}>Nom complet</label>
@@ -1370,7 +1380,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Contact */}
-        <div id="section-contact" className={styles.section}>
+        <div id="section-contact" className={styles.section} style={{ display: activeSection === 'section-contact' ? 'block' : 'none' }}>
           <p className={styles.sectionTitle}>Contact</p>
           <div className={styles.grid2}>
             <div className={styles.field}>
@@ -1393,7 +1403,7 @@ export default function DashboardPage() {
         </div>
 
         {/* RDV */}
-        <div id="section-rdv" className={styles.section}>
+        <div id="section-rdv" className={styles.section} style={{ display: activeSection === 'section-rdv' ? 'block' : 'none' }}>
           <p className={styles.sectionTitle}>Lien de prise de RDV</p>
           <div className={styles.field}>
             <label className={styles.label}>URL Calendly / Cal.com</label>
@@ -1402,7 +1412,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Labels des boutons */}
-        <div id="section-labels" className={styles.section}>
+        <div id="section-labels" className={styles.section} style={{ display: activeSection === 'section-labels' ? 'block' : 'none' }}>
           <p className={styles.sectionTitle}>Labels des boutons</p>
           <p style={{ fontSize: '0.8rem', color: '#6B7280', margin: '-8px 0 16px' }}>Personnalisez les textes affichés sur votre carte. Laissez vide pour garder le texte par défaut.</p>
           <div className={styles.field}>
@@ -1424,7 +1434,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Réseaux sociaux */}
-        <div id="section-socials" className={styles.section}>
+        <div id="section-socials" className={styles.section} style={{ display: activeSection === 'section-socials' ? 'block' : 'none' }}>
           <p className={styles.sectionTitle}>Réseaux sociaux</p>
           {[
             { key: 'instagram' as const, label: 'Instagram',   prefix: 'instagram.com/',      ph: 'monpseudo' },
@@ -1448,7 +1458,7 @@ export default function DashboardPage() {
 
         {/* ---- Assistant IA (Pro+) ---- */}
         {['pro', 'business', 'business_team'].includes(plan) && (
-          <div id="section-agent-ia" className={styles.section}>
+          <div id="section-agent-ia" className={styles.section} style={{ display: activeSection === 'section-agent-ia' ? 'block' : 'none' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
               <p className={styles.sectionTitle} style={{ marginBottom: 0 }}>Assistant IA</p>
               <span style={{ fontSize: '0.62rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', background: 'rgba(0,207,255,0.15)', color: '#00CFFF', border: '1px solid rgba(0,207,255,0.3)', borderRadius: 9999, padding: '2px 9px' }}>
@@ -1484,23 +1494,21 @@ Langue de travail : [français, anglais...]`}
           </div>
         )}
 
-        {/* Message */}
+        {/* Bouton save contextuel */}
         {msg && (
-          <div className={msg.type === 'success' ? styles.msgSuccess : styles.msgError}>
+          <div className={msg.type === 'success' ? styles.msgSuccess : styles.msgError} style={{ margin: '0 16px 8px' }}>
             {msg.text}
           </div>
         )}
-
-        {/* Save bar */}
-        <div className={styles.saveBar}>
-          <button type="submit" className={styles.btnSave} disabled={saving}>
+        <div style={{ padding: '12px 16px 20px' }}>
+          <button type="submit" className={styles.btnSave} disabled={saving} style={{ width: '100%' }}>
             {saving ? 'Sauvegarde...' : 'Enregistrer les modifications'}
           </button>
         </div>
       </form>
 
       {/* ---- Liens personnalisés ---- */}
-      <div id="section-liens" className={styles.body} style={{ marginTop: 0 }}>
+      <div id="section-liens" className={styles.body} style={{ marginTop: 0, display: activeSection === 'section-liens' ? 'block' : 'none' }}>
         <div className={styles.section}>
           <p className={styles.sectionTitle}>Liens personnalisés</p>
           <p style={{ fontSize: '0.78rem', color: '#6B7280', margin: '-4px 0 8px', lineHeight: 1.6 }}>
@@ -1596,7 +1604,7 @@ Langue de travail : [français, anglais...]`}
       </div>
 
       {/* ---- Gestion d'équipe ---- */}
-      <div id="section-equipe" className={styles.body} style={{ marginTop: 0 }}>
+      <div id="section-equipe" className={styles.body} style={{ marginTop: 0, display: activeSection === 'section-equipe' ? 'block' : 'none' }}>
         <div className={styles.section}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
             <p className={styles.sectionTitle} style={{ marginBottom: 0 }}>Gestion d&apos;équipe</p>
@@ -1741,7 +1749,7 @@ Langue de travail : [français, anglais...]`}
       </div>
 
       {/* ---- Documents (section indépendante) ---- */}
-      <div id="section-documents" className={styles.body} style={{ marginTop: 0 }}>
+      <div id="section-documents" className={styles.body} style={{ marginTop: 0, display: activeSection === 'section-documents' ? 'block' : 'none' }}>
         <div className={styles.section}>
           <p className={styles.sectionTitle}>Documents PDF</p>
 
@@ -1851,7 +1859,7 @@ Langue de travail : [français, anglais...]`}
         </div>
 
         {/* ---- Vidéos ---- */}
-        <div id="section-videos" className={styles.section}>
+        <div id="section-videos" className={styles.section} style={{ display: activeSection === 'section-videos' ? 'block' : 'none' }}>
           {(() => {
             const plan = (profile.plan ?? 'starter').toLowerCase();
             const limit = VIDEO_LIMITS[plan] ?? 1;
@@ -1970,7 +1978,7 @@ Langue de travail : [français, anglais...]`}
         </div>
 
         {/* ---- Portfolio / Réalisations ---- */}
-        <div id="section-portfolio" className={styles.section}>
+        <div id="section-portfolio" className={styles.section} style={{ display: activeSection === 'section-portfolio' ? 'block' : 'none' }}>
           {(() => {
             const plan = (profile.plan ?? 'starter').toLowerCase();
             const limit = PORTFOLIO_LIMITS[plan] ?? 6;
@@ -2051,7 +2059,7 @@ Langue de travail : [français, anglais...]`}
         </div>
 
         {/* ---- Leads reçus ---- */}
-        <div id="section-leads" className={styles.section} style={{ marginTop: 8 }}>
+        <div id="section-leads" className={styles.section} style={{ marginTop: 8, display: activeSection === 'section-leads' ? 'block' : 'none' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <p className={styles.sectionTitle} style={{ marginBottom: 0 }}>Contacts reçus</p>
             {leads.length > 0 && (
@@ -2116,7 +2124,7 @@ Langue de travail : [français, anglais...]`}
 
         {/* ---- Conversations IA ---- */}
         {['pro', 'business', 'business_team'].includes(plan) && (
-          <div id="section-chat-logs" className={styles.section} style={{ marginTop: 8 }}>
+          <div id="section-chat-logs" className={styles.section} style={{ marginTop: 8, display: activeSection === 'section-chat-logs' ? 'block' : 'none' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <p className={styles.sectionTitle} style={{ marginBottom: 0 }}>Conversations IA</p>
               {chatLogs.length > 0 && (
@@ -2160,7 +2168,7 @@ Langue de travail : [français, anglais...]`}
         )}
 
         {/* ---- Notifications Push ---- */}
-        <div id="section-push" className={styles.section} style={{ marginTop: 8 }}>
+        <div id="section-push" className={styles.section} style={{ marginTop: 8, display: activeSection === 'section-push' ? 'block' : 'none' }}>
           {(() => {
             const plan = (profile?.plan ?? 'starter').toLowerCase();
             const isPro = plan === 'pro' || plan === 'business';
@@ -2234,7 +2242,7 @@ Langue de travail : [français, anglais...]`}
         </div>
 
         {/* ---- Signature Email ---- */}
-        <div id="section-signature" className={styles.section} style={{ marginTop: 8 }}>
+        <div id="section-signature" className={styles.section} style={{ marginTop: 8, display: activeSection === 'section-signature' ? 'block' : 'none' }}>
 
           {/* Titre + badge */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
@@ -2343,7 +2351,7 @@ Langue de travail : [français, anglais...]`}
         </div>{/* fin mainContent */}
 
         {/* Panneau aperçu live (desktop uniquement) */}
-        <aside className={styles.previewPanel}>
+        <aside className={styles.previewPanel} style={{ display: PREVIEW_SECTIONS.has(activeSection) ? 'flex' : 'none' }}>
           <p className={styles.previewTitle}>Aperçu de votre carte</p>
           <MiniCardPreview
                     form={form}

@@ -766,11 +766,24 @@
     text-decoration: none;
     transition: color 0.15s, background 0.15s;
     border-left: 2px solid transparent;
+    background: none;
+    border-right: none;
+    border-top: none;
+    border-bottom: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
   }
   .sidebarLink:hover {
     color: white;
     background: rgba(255,255,255,0.04);
     border-left-color: rgba(0,207,255,0.4);
+  }
+  .sidebarLinkActive {
+    color: white !important;
+    background: rgba(0,207,255,0.08) !important;
+    border-left-color: #00CFFF !important;
+    font-weight: 700 !important;
   }
 
   .sidebarDivider {
