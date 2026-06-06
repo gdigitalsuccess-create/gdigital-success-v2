@@ -265,6 +265,7 @@ export default function DashboardPage() {
   const [uploadingCoverForId, setUploadingCoverForId] = useState<string | null>(null);
   const memberCoverInputRef = useRef<HTMLInputElement>(null);
   const [coverUploadTargetId, setCoverUploadTargetId] = useState<string | null>(null);
+  const [teamStats, setTeamStats] = useState<Record<string, { visits: number; leads: number }>>({});
 
   // Signature state
   const [sigCopied, setSigCopied] = useState(false);
@@ -340,6 +341,10 @@ export default function DashboardPage() {
       const data = await res.json();
       setTeam(Array.isArray(data) ? data as TeamMember[] : []);
     }
+    const resStats = await fetch('/api/carte/team-stats', {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (resStats.ok) setTeamStats(await resStats.json());
   }, []);
 
   const fetchChatLogs = useCallback(async (token: string) => {
@@ -1665,6 +1670,16 @@ Langue de travail : [français, anglais...]`}
                             <a href={`/c/${member.slug}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.68rem', color, textDecoration: 'none', fontFamily: 'monospace' }}>
                               /c/{member.slug} ↗
                             </a>
+                            {teamStats[member.id] !== undefined && (
+                              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                                <span style={{ fontSize: '0.62rem', color: '#6B7280', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 9999, padding: '2px 7px' }}>
+                                  👁 {teamStats[member.id].visits} vues
+                                </span>
+                                <span style={{ fontSize: '0.62rem', color: '#6B7280', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 9999, padding: '2px 7px' }}>
+                                  📩 {teamStats[member.id].leads} leads
+                                </span>
+                              </div>
+                            )}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                             <button type="button" onClick={() => handleTeamToggle(member.id, member.active)} disabled={togglingMemberId === member.id}
