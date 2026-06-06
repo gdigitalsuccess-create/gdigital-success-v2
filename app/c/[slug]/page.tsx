@@ -47,8 +47,8 @@ async function getProfile(slug: string): Promise<Profile | null> {
     description: data.description ?? "",
     // Données entreprise → owner si membre, sinon ses propres données
     company: src.company ?? undefined,
-    cover: src.cover_url ?? undefined,
-    coverVideo: src.cover_video_url ?? undefined,
+    cover: (data.allow_custom_cover && data.cover_url) ? data.cover_url : (src.cover_url ?? undefined),
+    coverVideo: (data.allow_custom_cover && data.cover_url) ? undefined : (src.cover_video_url ?? undefined),
     website: src.website ?? undefined,
     location: src.location ?? undefined,
     rdv: src.rdv_url ?? undefined,

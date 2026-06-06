@@ -94,8 +94,10 @@ type TeamMember = {
   phone: string | null;
   active: boolean;
   photo_url: string | null;
+  cover_url: string | null;
   linkedin: string | null;
   twitter: string | null;
+  allow_custom_cover: boolean;
 };
 
 function slugifyMember(name: string) {
@@ -251,6 +253,9 @@ export default function DashboardPage() {
   const [teamError, setTeamError] = useState<string | null>(null);
   const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
   const [togglingMemberId, setTogglingMemberId] = useState<string | null>(null);
+  const [uploadingCoverForId, setUploadingCoverForId] = useState<string | null>(null);
+  const memberCoverInputRef = useRef<HTMLInputElement>(null);
+  const [coverUploadTargetId, setCoverUploadTargetId] = useState<string | null>(null);
 
   // Signature state
   const [sigCopied, setSigCopied] = useState(false);
@@ -811,6 +816,44 @@ export default function DashboardPage() {
     });
     if (res.ok) setTeam(prev => prev.filter(m => m.id !== memberId));
     setDeletingMemberId(null);
+  }
+
+  async function handleCoverPermToggle(member: TeamMember) {
+    const token = await getToken();
+    const next = !member.allow_custom_cover;
+    const res = await fetch('/api/carte/team', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ id: member.id, allow_custom_cover: next, ...(!next ? { cover_url: null } : {}) }),
+    });
+    if (res.ok) setTeam(prev => prev.map(m => m.id === member.id ? { ...m, allow_custom_cover: next, ...(!next ? { cover_url: null } : {}) } : m));
+  }
+
+  async function handleMemberCoverUpload(file: File, memberId: string, memberSlug: string) {
+    setUploadingCoverForId(memberId);
+    const ext = file.name.split('.').pop();
+    const path = `${memberSlug}/cover-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from('carte-images').upload(path, file, { upsert: true });
+    if (upErr) { setUploadingCoverForId(null); return; }
+    const { data: urlData } = supabase.storage.from('carte-images').getPublicUrl(path);
+    const token = await getToken();
+    const res = await fetch('/api/carte/team', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ id: memberId, cover_url: urlData.publicUrl }),
+    });
+    if (res.ok) setTeam(prev => prev.map(m => m.id === memberId ? { ...m, cover_url: urlData.publicUrl } : m));
+    setUploadingCoverForId(null);
+  }
+
+  async function handleMemberCoverRemove(memberId: string) {
+    const token = await getToken();
+    const res = await fetch('/api/carte/team', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ id: memberId, cover_url: null }),
+    });
+    if (res.ok) setTeam(prev => prev.map(m => m.id === memberId ? { ...m, cover_url: null } : m));
   }
 
   function handleCopySignature() {
@@ -1506,57 +1549,82 @@ Langue de travail : [français, anglais...]`}
                 <p className={styles.emptyDocs}>Aucun membre pour l&apos;instant — ajoutez le premier collaborateur de votre équipe.</p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <input ref={memberCoverInputRef} type="file" accept="image/*" style={{ display: 'none' }}
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file && coverUploadTargetId) {
+                        const member = team.find(m => m.id === coverUploadTargetId);
+                        if (member) handleMemberCoverUpload(file, member.id, member.slug);
+                      }
+                      e.target.value = '';
+                    }} />
                   {team.map(member => {
                     const initials = member.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
                     const color = memberColor(member.name);
                     return (
-                      <div key={member.id} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '12px 14px' }}>
-                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: color + '22', border: `2px solid ${color}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          {member.photo_url
-                            ? <img src={member.photo_url} alt={member.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-                            : <span style={{ fontSize: '0.78rem', fontWeight: 800, color }}>{initials}</span>}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 700, color: 'white', fontSize: '0.875rem', marginBottom: 1 }}>{member.name}</div>
-                          {member.title && <div style={{ fontSize: '0.72rem', color: '#6B7280', marginBottom: 2 }}>{member.title}</div>}
-                          <a href={`/c/${member.slug}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.68rem', color, textDecoration: 'none', fontFamily: 'monospace' }}>
-                            /c/{member.slug} ↗
-                          </a>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                          <button
-                            type="button"
-                            onClick={() => handleTeamToggle(member.id, member.active)}
-                            disabled={togglingMemberId === member.id}
-                            style={{ fontSize: '0.66rem', fontWeight: 700, padding: '3px 8px', borderRadius: 9999, cursor: 'pointer', background: member.active ? 'rgba(34,197,94,0.1)' : 'rgba(248,113,113,0.1)', border: `1px solid ${member.active ? 'rgba(34,197,94,0.3)' : 'rgba(248,113,113,0.3)'}`, color: member.active ? '#22C55E' : '#F87171' }}
-                          >
-                            {togglingMemberId === member.id ? '...' : (member.active ? 'Active' : 'Inactive')}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => openTeamEdit(member)}
-                            style={{ padding: '5px', borderRadius: 7, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#9CA3AF', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                          >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13">
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                            </svg>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleTeamDelete(member.id)}
-                            disabled={deletingMemberId === member.id}
-                            className={styles.btnDelete}
-                          >
-                            {deletingMemberId === member.id ? <span style={{ fontSize: '0.7rem' }}>...</span> : (
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14">
-                                <polyline points="3 6 5 6 21 6"/>
-                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                                <path d="M10 11v6M14 11v6"/>
-                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                      <div key={member.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, overflow: 'hidden' }}>
+                        {/* Ligne principale */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px' }}>
+                          <div style={{ width: 40, height: 40, borderRadius: '50%', background: color + '22', border: `2px solid ${color}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            {member.photo_url
+                              ? <img src={member.photo_url} alt={member.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                              : <span style={{ fontSize: '0.78rem', fontWeight: 800, color }}>{initials}</span>}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontWeight: 700, color: 'white', fontSize: '0.875rem', marginBottom: 1 }}>{member.name}</div>
+                            {member.title && <div style={{ fontSize: '0.72rem', color: '#6B7280', marginBottom: 2 }}>{member.title}</div>}
+                            <a href={`/c/${member.slug}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.68rem', color, textDecoration: 'none', fontFamily: 'monospace' }}>
+                              /c/{member.slug} ↗
+                            </a>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                            <button type="button" onClick={() => handleTeamToggle(member.id, member.active)} disabled={togglingMemberId === member.id}
+                              style={{ fontSize: '0.66rem', fontWeight: 700, padding: '3px 8px', borderRadius: 9999, cursor: 'pointer', background: member.active ? 'rgba(34,197,94,0.1)' : 'rgba(248,113,113,0.1)', border: `1px solid ${member.active ? 'rgba(34,197,94,0.3)' : 'rgba(248,113,113,0.3)'}`, color: member.active ? '#22C55E' : '#F87171' }}>
+                              {togglingMemberId === member.id ? '...' : (member.active ? 'Active' : 'Inactive')}
+                            </button>
+                            <button type="button" onClick={() => openTeamEdit(member)}
+                              style={{ padding: '5px', borderRadius: 7, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#9CA3AF', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                               </svg>
-                            )}
+                            </button>
+                            <button type="button" onClick={() => handleTeamDelete(member.id)} disabled={deletingMemberId === member.id} className={styles.btnDelete}>
+                              {deletingMemberId === member.id ? <span style={{ fontSize: '0.7rem' }}>...</span> : (
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14">
+                                  <polyline points="3 6 5 6 21 6"/>
+                                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                                  <path d="M10 11v6M14 11v6"/>
+                                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                                </svg>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                        {/* Couverture personnalisée */}
+                        <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <button type="button" onClick={() => handleCoverPermToggle(member)}
+                            style={{ fontSize: '0.65rem', fontWeight: 700, padding: '3px 9px', borderRadius: 9999, cursor: 'pointer', background: member.allow_custom_cover ? 'rgba(108,99,255,0.12)' : 'rgba(255,255,255,0.04)', border: `1px solid ${member.allow_custom_cover ? 'rgba(108,99,255,0.4)' : 'rgba(255,255,255,0.1)'}`, color: member.allow_custom_cover ? '#A78BFA' : '#6B7280' }}>
+                            {member.allow_custom_cover ? 'Cover perso activée' : 'Cover entreprise'}
                           </button>
+                          {member.allow_custom_cover && (
+                            <>
+                              {member.cover_url
+                                ? <img src={member.cover_url} alt="cover" style={{ height: 28, width: 50, objectFit: 'cover', borderRadius: 5, border: '1px solid rgba(255,255,255,0.1)' }} />
+                                : <span style={{ fontSize: '0.65rem', color: '#4B5563' }}>Aucune cover — hérite de l&apos;entreprise</span>}
+                              <button type="button" disabled={uploadingCoverForId === member.id}
+                                onClick={() => { setCoverUploadTargetId(member.id); memberCoverInputRef.current?.click(); }}
+                                style={{ fontSize: '0.65rem', fontWeight: 600, padding: '3px 9px', borderRadius: 9999, cursor: 'pointer', background: 'rgba(0,207,255,0.08)', border: '1px solid rgba(0,207,255,0.25)', color: '#00CFFF' }}>
+                                {uploadingCoverForId === member.id ? '...' : 'Changer'}
+                              </button>
+                              {member.cover_url && (
+                                <button type="button" onClick={() => handleMemberCoverRemove(member.id)}
+                                  style={{ fontSize: '0.65rem', fontWeight: 600, padding: '3px 9px', borderRadius: 9999, cursor: 'pointer', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.25)', color: '#F87171' }}>
+                                  Retirer
+                                </button>
+                              )}
+                            </>
+                          )}
                         </div>
                       </div>
                     );
