@@ -103,6 +103,8 @@ function slugifyMember(name: string) {
 const MEMBER_COLORS = ['#6C63FF', '#00CFFF', '#D4A843', '#F87171', '#22C55E', '#F59E0B'];
 function memberColor(name: string) { return MEMBER_COLORS[name.charCodeAt(0) % MEMBER_COLORS.length]; }
 
+const TEAM_LIMITS: Record<string, number> = { pro: 2, business: 5, business_team: 10 };
+
 const VIDEO_LIMITS: Record<string, number> = {
   starter: 1,
   pro: 2,
@@ -1464,30 +1466,30 @@ Langue de travail : [français, anglais...]`}
             </span>
           </div>
 
-          {plan !== 'business_team' ? (
+          {!TEAM_LIMITS[plan] ? (
             <div style={{ background: 'rgba(212,168,67,0.05)', border: '1px solid rgba(212,168,67,0.2)', borderRadius: 14, padding: '20px 18px' }}>
               <p style={{ fontSize: '1.3rem', margin: '0 0 10px' }}>👥</p>
               <p style={{ fontWeight: 700, color: 'white', fontSize: '0.95rem', margin: '0 0 8px' }}>
                 Plusieurs cartes, une seule équipe
               </p>
               <p style={{ fontSize: '0.82rem', color: '#9CA3AF', lineHeight: 1.7, margin: '0 0 16px' }}>
-                Créez jusqu&apos;à 10 cartes digitales pour vos collaborateurs. Chaque membre a sa propre page publique, gérée entièrement depuis votre espace.
+                Disponible dès le plan Pro (2 membres), Business (5 membres) ou Business Équipe (10 membres).
               </p>
               <button
                 type="button"
                 onClick={() => setUpgradeTarget('business_team')}
                 style={{ width: '100%', padding: '12px', borderRadius: 10, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: '#22C55E', fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer' }}
               >
-                Passer au plan Business Équipe
+                Passer au plan Pro ou supérieur
               </button>
             </div>
           ) : (
             <>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                 <span style={{ fontSize: '0.72rem', color: '#6B7280', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 9999, padding: '3px 10px' }}>
-                  {team.length}/10 membre{team.length > 1 ? 's' : ''}
+                  {team.length}/{TEAM_LIMITS[plan]} membre{team.length > 1 ? 's' : ''}
                 </span>
-                {team.length < 10 && (
+                {team.length < TEAM_LIMITS[plan] && (
                   <button
                     type="button"
                     onClick={openTeamCreate}
