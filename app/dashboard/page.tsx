@@ -218,6 +218,11 @@ export default function DashboardPage() {
   const [requestingUpgrade, setRequestingUpgrade] = useState(false);
   const [upgradeMsg, setUpgradeMsg]         = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
+  // Password change state
+  const [pwdForm, setPwdForm] = useState({ next: '', confirm: '' });
+  const [savingPwd, setSavingPwd] = useState(false);
+  const [pwdMsg, setPwdMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
   // Videos state
   const [videos, setVideos]                     = useState<VideoItem[]>([]);
   const [videoUrl, setVideoUrl]                 = useState('');
@@ -461,6 +466,18 @@ export default function DashboardPage() {
 
   async function handleLogout() {
     await supabase.auth.signOut();
+  }
+
+  async function handlePasswordChange() {
+    if (!pwdForm.next || !pwdForm.confirm) { setPwdMsg({ text: 'Remplissez les deux champs.', type: 'error' }); return; }
+    if (pwdForm.next !== pwdForm.confirm) { setPwdMsg({ text: 'Les mots de passe ne correspondent pas.', type: 'error' }); return; }
+    if (pwdForm.next.length < 6) { setPwdMsg({ text: 'Minimum 6 caractères.', type: 'error' }); return; }
+    setSavingPwd(true);
+    setPwdMsg(null);
+    const { error } = await supabase.auth.updateUser({ password: pwdForm.next });
+    setSavingPwd(false);
+    if (error) setPwdMsg({ text: 'Erreur : ' + error.message, type: 'error' });
+    else { setPwdMsg({ text: 'Mot de passe mis à jour avec succès.', type: 'success' }); setPwdForm({ next: '', confirm: '' }); }
   }
 
   async function handleSave(e: { preventDefault(): void }) {
@@ -1040,6 +1057,7 @@ export default function DashboardPage() {
             { id: 'section-push',         emoji: '🔔', label: 'Notifications' },
             { id: 'section-signature',    emoji: '✉️', label: 'Signature email' },
             { id: 'section-plan',         emoji: '⭐', label: 'Mon plan' },
+            { id: 'section-password',     emoji: '🔒', label: 'Mot de passe' },
           ].map(item => (
             <a key={item.id} href={`#${item.id}`} className={styles.sidebarLink}>
               <span>{item.emoji}</span>{item.label}
@@ -1252,6 +1270,32 @@ export default function DashboardPage() {
           </>
         );
       })()}
+
+      {/* ---- Mot de passe ---- */}
+      <div id="section-password" className={styles.body} style={{ marginTop: 0 }}>
+        <div className={styles.section}>
+          <p className={styles.sectionTitle}>Changer le mot de passe</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 420 }}>
+            <div>
+              <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 5 }}>Nouveau mot de passe</label>
+              <input className={styles.input} type="password" placeholder="Minimum 6 caractères" value={pwdForm.next}
+                onChange={e => setPwdForm(f => ({ ...f, next: e.target.value }))} />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 5 }}>Confirmer le mot de passe</label>
+              <input className={styles.input} type="password" placeholder="Répétez le mot de passe" value={pwdForm.confirm}
+                onChange={e => setPwdForm(f => ({ ...f, confirm: e.target.value }))} />
+            </div>
+            {pwdMsg && (
+              <div className={pwdMsg.type === 'success' ? styles.msgSuccess : styles.msgError}>{pwdMsg.text}</div>
+            )}
+            <button type="button" onClick={handlePasswordChange} disabled={savingPwd}
+              style={{ padding: '11px 20px', borderRadius: 10, background: 'linear-gradient(135deg,#6C63FF,#00CFFF)', border: 'none', color: 'white', fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer', opacity: savingPwd ? 0.7 : 1, width: 'fit-content' }}>
+              {savingPwd ? 'Mise à jour...' : 'Mettre à jour le mot de passe'}
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Modal confirmation upgrade */}
       {upgradeTarget && (
