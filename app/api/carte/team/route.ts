@@ -12,40 +12,86 @@ const AGENCY_EMAIL = 'contact@digitalsucces.tech';
 const AGENCY_NAME  = 'G+Digital Success';
 
 async function sendWelcomeMember({ memberName, memberEmail, ownerName, slug, tempPassword }: { memberName: string; memberEmail: string; ownerName: string; slug: string; tempPassword: string }) {
-  const cardUrl = `https://digitalsucces.tech/c/${slug}`;
+  const cardUrl      = `https://digitalsucces.tech/c/${slug}`;
   const dashboardUrl = `https://digitalsucces.tech/dashboard`;
+  const subject      = `Votre carte digitale est prête — G+Digital Success`;
+
+  const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><style>
+    body{font-family:Arial,sans-serif;background:#f4f6fa;margin:0;padding:0}
+    .wrapper{max-width:580px;margin:32px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+    .header{background:#1B3464;padding:28px 32px;text-align:center}
+    .header h1{color:#fff;margin:12px 0 4px;font-size:20px}
+    .header p{color:#D4A843;margin:0;font-size:13px}
+    .body{padding:32px;color:#333;font-size:15px;line-height:1.7}
+    h2{color:#1B3464;font-size:16px;margin:24px 0 10px}
+    .info-box{background:#f0f4ff;border-left:4px solid #1B3464;border-radius:6px;padding:16px 20px;margin:16px 0;font-size:14px}
+    .info-box strong{color:#1B3464}
+    .step{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+    .step-num{background:#1B3464;color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;margin-top:2px}
+    .step-text{font-size:14px;color:#444;line-height:1.6}
+    .cta{text-align:center;margin:28px 0 16px}
+    .cta a{background:#D4A843;color:#1B3464;padding:13px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;display:inline-block}
+    .cta-sec{text-align:center;margin-bottom:24px}
+    .cta-sec a{background:#f0f4ff;color:#1B3464;padding:11px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;border:1px solid #1B3464;display:inline-block}
+    .footer{background:#f8faff;padding:20px 32px;text-align:center;font-size:12px;color:#aaa;border-top:1px solid #eee}
+  </style></head><body>
+  <div class="wrapper">
+    <div class="header">
+      <img src="https://digitalsucces.tech/logo-gdigital.png" alt="G+Digital Success" style="height:48px;object-fit:contain;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto">
+      <h1>Votre carte digitale est prête !</h1>
+      <p>${memberName}</p>
+    </div>
+    <div class="body">
+      <p>Bonjour <strong>${memberName}</strong>,</p>
+      <p><strong>${ownerName}</strong> vient de créer votre carte de visite digitale via G+Digital Success. Voici comment démarrer en 3 étapes :</p>
+
+      <h2>Vos identifiants de connexion</h2>
+      <div class="info-box">
+        <strong>Email :</strong> ${memberEmail}<br/>
+        <strong>Mot de passe temporaire :</strong> <span style="background:#e8f0fe;padding:2px 8px;border-radius:4px;font-family:monospace;color:#1B3464">${tempPassword}</span><br/>
+        <span style="font-size:12px;color:#888;margin-top:6px;display:block">Pensez à changer votre mot de passe depuis votre dashboard après votre première connexion.</span>
+      </div>
+      <div class="cta"><a href="${dashboardUrl}">Accéder à mon dashboard</a></div>
+
+      <h2>Comment personnaliser votre carte</h2>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">Connectez-vous sur <a href="${dashboardUrl}" style="color:#1B3464;font-weight:700;text-decoration:underline">${dashboardUrl}</a> avec votre email et mot de passe ci-dessus</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">Complétez votre profil : photo, LinkedIn, téléphone direct, bio personnelle</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">Partagez votre carte — via le QR code, le lien ou la puce NFC</div>
+      </div>
+
+      <h2>Votre carte publique</h2>
+      <div class="info-box">
+        <strong>URL de votre carte :</strong><br/>
+        <a href="${cardUrl}" style="color:#1B3464">${cardUrl}</a>
+      </div>
+      <div class="cta-sec"><a href="${cardUrl}">Voir ma carte en ligne ↗</a></div>
+
+      <h2>Besoin d'aide ?</h2>
+      <div class="info-box">
+        <strong>Email :</strong> <a href="mailto:${AGENCY_EMAIL}" style="color:#1B3464">${AGENCY_EMAIL}</a><br/>
+        <strong>WhatsApp :</strong> <a href="https://wa.me/971582680034" style="color:#1B3464">+971 58 268 0034</a><br/>
+        <strong>Site :</strong> <a href="https://digitalsucces.tech" style="color:#1B3464">digitalsucces.tech</a>
+      </div>
+    </div>
+    <div class="footer">${AGENCY_NAME} · ${AGENCY_EMAIL} · digitalsucces.tech</div>
+  </div></body></html>`;
+
   await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
     body: JSON.stringify({
       sender: { name: AGENCY_NAME, email: AGENCY_EMAIL },
       to: [{ email: memberEmail, name: memberName }],
-      subject: `Votre carte digitale est prête — ${ownerName}`,
-      htmlContent: `
-        <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#f9fafb;border-radius:12px">
-          <img src="https://digitalsucces.tech/logo-gdigital.png" alt="G+Digital Success" style="height:36px;margin-bottom:24px" />
-          <h2 style="color:#1B3464;font-size:1.3rem;margin:0 0 12px">Bonjour ${memberName},</h2>
-          <p style="color:#374151;line-height:1.7;margin:0 0 16px">
-            <strong>${ownerName}</strong> vient de créer votre carte de visite digitale via G+Digital Success.
-          </p>
-          <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:16px 20px;margin:0 0 20px">
-            <p style="color:#1B3464;font-weight:700;font-size:0.9rem;margin:0 0 10px">Vos identifiants de connexion</p>
-            <p style="color:#374151;font-size:0.85rem;margin:0 0 4px">Email : <strong>${memberEmail}</strong></p>
-            <p style="color:#374151;font-size:0.85rem;margin:0 0 12px">Mot de passe temporaire : <strong style="font-family:monospace;background:#DBEAFE;padding:2px 6px;border-radius:4px">${tempPassword}</strong></p>
-            <a href="${dashboardUrl}" style="display:inline-block;background:#1B3464;color:white;font-weight:700;padding:10px 22px;border-radius:8px;text-decoration:none;font-size:0.85rem">
-              Accéder à mon espace →
-            </a>
-          </div>
-          <p style="color:#6B7280;font-size:0.82rem;line-height:1.6;margin:0 0 16px">
-            Pensez à changer votre mot de passe après la première connexion. Votre carte est aussi accessible ici :
-          </p>
-          <a href="${cardUrl}" style="display:inline-block;background:white;border:1px solid #D4A843;color:#D4A843;font-weight:700;padding:10px 22px;border-radius:8px;text-decoration:none;font-size:0.85rem;margin-bottom:24px">
-            Voir ma carte publique →
-          </a>
-          <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0" />
-          <p style="color:#9CA3AF;font-size:0.75rem;margin:0">G+Digital Success · <a href="https://digitalsucces.tech" style="color:#D4A843;text-decoration:none">digitalsucces.tech</a></p>
-        </div>
-      `,
+      subject,
+      htmlContent: html,
     }),
   });
 }
