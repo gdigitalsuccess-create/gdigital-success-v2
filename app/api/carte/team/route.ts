@@ -173,7 +173,9 @@ export async function POST(req: NextRequest) {
   if (alreadyExists) return NextResponse.json({ error: 'Un compte existe déjà pour cet email' }, { status: 409 });
 
   // Créer le compte Supabase Auth du membre
-  const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase() + '!';
+  const firstName = name.trim().split(' ')[0];
+  const digits = String(Math.floor(1000 + Math.random() * 9000));
+  const tempPassword = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase() + '@' + digits;
   const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
     email: email.trim(),
     password: tempPassword,
