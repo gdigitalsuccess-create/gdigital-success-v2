@@ -7,6 +7,43 @@ const supabaseAdmin = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
+const BREVO_KEY    = process.env.BREVO_API_KEY!;
+const AGENCY_EMAIL = 'contact@digitalsucces.tech';
+const AGENCY_NAME  = 'G+Digital Success';
+
+async function sendWelcomeMember({ memberName, memberEmail, ownerName, slug }: { memberName: string; memberEmail: string; ownerName: string; slug: string }) {
+  const cardUrl = `https://digitalsucces.tech/c/${slug}`;
+  await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      sender: { name: AGENCY_NAME, email: AGENCY_EMAIL },
+      to: [{ email: memberEmail, name: memberName }],
+      subject: `Votre carte digitale est prête — ${ownerName}`,
+      htmlContent: `
+        <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#f9fafb;border-radius:12px">
+          <img src="https://digitalsucces.tech/logo-gdigital.png" alt="G+Digital Success" style="height:36px;margin-bottom:24px" />
+          <h2 style="color:#1B3464;font-size:1.3rem;margin:0 0 12px">Bonjour ${memberName},</h2>
+          <p style="color:#374151;line-height:1.7;margin:0 0 16px">
+            <strong>${ownerName}</strong> vient de créer votre carte de visite digitale via G+Digital Success.
+          </p>
+          <p style="color:#374151;line-height:1.7;margin:0 0 24px">
+            Votre carte est accessible à cette adresse :
+          </p>
+          <a href="${cardUrl}" style="display:inline-block;background:#1B3464;color:white;font-weight:700;padding:12px 28px;border-radius:8px;text-decoration:none;font-size:0.95rem;margin-bottom:24px">
+            Voir ma carte →
+          </a>
+          <p style="color:#6B7280;font-size:0.82rem;line-height:1.6;margin:0">
+            Partagez ce lien ou demandez à ${ownerName} de vous fournir votre carte NFC pour commencer à partager vos coordonnées professionnelles.
+          </p>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0" />
+          <p style="color:#9CA3AF;font-size:0.75rem;margin:0">G+Digital Success · <a href="https://digitalsucces.tech" style="color:#D4A843;text-decoration:none">digitalsucces.tech</a></p>
+        </div>
+      `,
+    }),
+  });
+}
+
 async function getAuthUser(req: NextRequest) {
   const token = req.headers.get('Authorization')?.replace('Bearer ', '');
   if (!token) return null;
@@ -85,6 +122,16 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+  const { data: ownerProfile } = await supabaseAdmin
+    .from('carte_profiles').select('name').eq('user_id', user.id).single();
+  await sendWelcomeMember({
+    memberName: name.trim(),
+    memberEmail: email.trim(),
+    ownerName: ownerProfile?.name ?? 'Votre entreprise',
+    slug,
+  });
+
   return NextResponse.json(data);
 }
 
