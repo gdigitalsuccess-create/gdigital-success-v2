@@ -219,7 +219,7 @@ export default function DashboardPage() {
   const [upgradeMsg, setUpgradeMsg]         = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   // Password change state
-  const [pwdForm, setPwdForm] = useState({ next: '', confirm: '' });
+  const [pwdForm, setPwdForm] = useState({ current: '', next: '', confirm: '' });
   const [savingPwd, setSavingPwd] = useState(false);
   const [pwdMsg, setPwdMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
@@ -469,15 +469,19 @@ export default function DashboardPage() {
   }
 
   async function handlePasswordChange() {
-    if (!pwdForm.next || !pwdForm.confirm) { setPwdMsg({ text: 'Remplissez les deux champs.', type: 'error' }); return; }
+    if (!pwdForm.current || !pwdForm.next || !pwdForm.confirm) { setPwdMsg({ text: 'Remplissez tous les champs.', type: 'error' }); return; }
     if (pwdForm.next !== pwdForm.confirm) { setPwdMsg({ text: 'Les mots de passe ne correspondent pas.', type: 'error' }); return; }
     if (pwdForm.next.length < 6) { setPwdMsg({ text: 'Minimum 6 caractères.', type: 'error' }); return; }
     setSavingPwd(true);
     setPwdMsg(null);
+    // Vérifier le mot de passe actuel
+    const { data: { user: u } } = await supabase.auth.getUser();
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email: u?.email ?? '', password: pwdForm.current });
+    if (signInError) { setSavingPwd(false); setPwdMsg({ text: 'Mot de passe actuel incorrect.', type: 'error' }); return; }
     const { error } = await supabase.auth.updateUser({ password: pwdForm.next });
     setSavingPwd(false);
     if (error) setPwdMsg({ text: 'Erreur : ' + error.message, type: 'error' });
-    else { setPwdMsg({ text: 'Mot de passe mis à jour avec succès.', type: 'success' }); setPwdForm({ next: '', confirm: '' }); }
+    else { setPwdMsg({ text: 'Mot de passe mis à jour avec succès.', type: 'success' }); setPwdForm({ current: '', next: '', confirm: '' }); }
   }
 
   async function handleSave(e: { preventDefault(): void }) {
@@ -1276,6 +1280,11 @@ export default function DashboardPage() {
         <div className={styles.section}>
           <p className={styles.sectionTitle}>Changer le mot de passe</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 420 }}>
+            <div>
+              <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 5 }}>Mot de passe actuel</label>
+              <input className={styles.input} type="password" placeholder="Votre mot de passe actuel" value={pwdForm.current}
+                onChange={e => setPwdForm(f => ({ ...f, current: e.target.value }))} />
+            </div>
             <div>
               <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 5 }}>Nouveau mot de passe</label>
               <input className={styles.input} type="password" placeholder="Minimum 6 caractères" value={pwdForm.next}
