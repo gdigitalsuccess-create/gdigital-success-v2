@@ -30,6 +30,12 @@ type Profile = {
   telegram: string;
   plan: string;
   ai_instructions: string;
+  primary_color: string;
+  secondary_color: string;
+  bg_color: string;
+  text_color: string;
+  font_heading: string;
+  logo_url: string;
 };
 
 type Doc = {
@@ -2163,7 +2169,17 @@ Langue de travail : [français, anglais...]`}
         {/* Panneau aperçu live (desktop uniquement) */}
         <aside className={styles.previewPanel}>
           <p className={styles.previewTitle}>Aperçu de votre carte</p>
-          <MiniCardPreview form={form} profile={profile} />
+          <MiniCardPreview
+                    form={form}
+                    profile={profile}
+                    theme={{
+                      bg_color:        profile.bg_color,
+                      primary_color:   profile.primary_color,
+                      secondary_color: profile.secondary_color,
+                      text_color:      profile.text_color,
+                      font_heading:    profile.font_heading,
+                    }}
+                  />
         </aside>
 
       </div>{/* fin desktopWrapper */}

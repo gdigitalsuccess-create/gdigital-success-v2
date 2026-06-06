@@ -17,6 +17,7 @@ type ProfileData = {
   cover_url: string;
   cover_video_url: string;
   slug: string;
+  logo_url?: string;
 };
 
 type Theme = {
@@ -149,6 +150,11 @@ export default function MiniCardPreview({ form, profile, theme = {}, showLink = 
 
         {/* Infos */}
         <div style={{ paddingTop: 38, paddingBottom: 12, paddingLeft: 14, paddingRight: 14, textAlign: 'center' }}>
+          {profile.logo_url && (
+            <div style={{ marginBottom: 8 }}>
+              <img src={profile.logo_url} alt="logo" style={{ maxHeight: 32, maxWidth: 100, objectFit: 'contain', display: 'inline-block' }} />
+            </div>
+          )}
           <h3 style={{ color: textColor, fontWeight: 800, fontSize: '0.92rem', margin: '0 0 2px', fontFamily, lineHeight: 1.2 }}>
             {form.name || <span style={{ color: '#4B5563' }}>Votre nom</span>}
           </h3>

@@ -253,17 +253,22 @@ export default function CartesPage() {
   async function saveTheme() {
     if (!themeModal) return;
     setSavingTheme(true);
-    await supabase.from('carte_profiles').update({
-      bg_color:      theme.bg_color,
-      primary_color: theme.primary_color,
-      secondary_color: theme.secondary_color,
-      text_color:    theme.text_color,
-      font_heading:  theme.font_heading,
-      logo_url:      theme.logo_url || null,
-      logo_position: theme.logo_position,
-    }).eq('id', themeModal.id);
+    const res = await fetch('/api/admin/update-theme', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        profile_id:      themeModal.id,
+        bg_color:        theme.bg_color,
+        primary_color:   theme.primary_color,
+        secondary_color: theme.secondary_color,
+        text_color:      theme.text_color,
+        font_heading:    theme.font_heading,
+        logo_url:        theme.logo_url || null,
+        logo_position:   theme.logo_position,
+      }),
+    });
     setSavingTheme(false);
-    setThemeModal(null);
+    if (res.ok) setThemeModal(null);
   }
 
   const actives  = cartes.filter(c => c.active).length;
