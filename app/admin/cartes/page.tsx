@@ -569,8 +569,8 @@ export default function CartesPage() {
                       </button>
                     </div>
                     <MiniCardPreview
-                      form={{ name: form.name, title: form.title, company: form.company, phone: '', email: form.email, website: '', location: '' }}
-                      profile={{ photo_url: '', cover_url: '', cover_video_url: '', slug: form.slug }}
+                      form={{ name: form.name, title: form.title, company: form.company, phone: '', email: form.email, website: '', location: '', rdv_url: '', instagram: '', tiktok: '', facebook: '', linkedin: '', youtube: '', twitter: '', snapchat: '', telegram: '' }}
+                      profile={{ photo_url: '', cover_url: '', cover_video_url: '', slug: form.slug, logo_url: theme.logo_url }}
                       theme={theme}
                       showLink={false}
                     />
@@ -630,8 +630,8 @@ export default function CartesPage() {
               ✕
             </button>
             <MiniCardPreview
-              form={{ name: form.name, title: form.title, company: form.company, phone: '00000000', email: form.email, website: 'example.com', location: 'Votre ville' }}
-              profile={{ photo_url: '', cover_url: '', cover_video_url: '', slug: form.slug }}
+              form={{ name: form.name, title: form.title, company: form.company, phone: '00000000', email: form.email, website: 'example.com', location: 'Votre ville', rdv_url: '', instagram: '', tiktok: '', facebook: '', linkedin: '', youtube: '', twitter: '', snapchat: '', telegram: '' }}
+              profile={{ photo_url: '', cover_url: '', cover_video_url: '', slug: form.slug, logo_url: theme.logo_url }}
               theme={theme}
               showLink={false}
             />
