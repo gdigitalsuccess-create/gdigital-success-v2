@@ -149,7 +149,7 @@ export default function MemberDashboard({ profile: initialProfile }: Props) {
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 9999, background: 'rgba(0,207,255,0.1)', border: '1px solid rgba(0,207,255,0.3)', color: '#00CFFF', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none' }}>
             Voir ma carte ↗
           </a>
-          <button onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')}
+          <button onClick={() => supabase.auth.signOut().then(() => window.location.href = '/dashboard')}
             style={{ padding: '8px 14px', borderRadius: 9999, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9CA3AF', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
             Déconnexion
           </button>
