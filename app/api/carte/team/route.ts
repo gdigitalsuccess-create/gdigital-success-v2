@@ -37,7 +37,7 @@ async function sendWelcomeMember({ memberName, memberEmail, ownerName, slug, tem
   </style></head><body>
   <div class="wrapper">
     <div class="header">
-      <img src="https://digitalsucces.tech/logo-gdigital.png" alt="G+Digital Success" style="height:48px;object-fit:contain;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto">
+      <img src="https://digitalsucces.tech/assets/logo.png" alt="G+Digital Success" style="height:48px;object-fit:contain;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto">
       <h1>Votre carte digitale est prête !</h1>
       <p>${memberName}</p>
     </div>

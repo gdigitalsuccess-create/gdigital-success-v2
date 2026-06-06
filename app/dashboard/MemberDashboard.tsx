@@ -126,7 +126,7 @@ export default function MemberDashboard({ profile: initialProfile }: Props) {
     <div style={{ minHeight: '100vh', background: '#0D0D1A', color: 'white' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.3)' }}>
-        <img src="/logo-gdigital.png" alt="G+Digital" style={{ height: 28 }} />
+        <img src="/assets/logo.png" alt="G+Digital" style={{ height: 28 }} />
         <div style={{ display: 'flex', gap: 10 }}>
           <a href={`/c/${profile.slug}`} target="_blank" rel="noreferrer"
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 9999, background: 'rgba(0,207,255,0.1)', border: '1px solid rgba(0,207,255,0.3)', color: '#00CFFF', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none' }}>
