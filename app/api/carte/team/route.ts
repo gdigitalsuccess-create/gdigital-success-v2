@@ -244,10 +244,17 @@ export async function DELETE(req: NextRequest) {
   if (!id) return NextResponse.json({ error: 'id manquant' }, { status: 400 });
 
   const { data: member } = await supabaseAdmin
-    .from('carte_profiles').select('id').eq('id', id).eq('team_owner_id', user.id).single();
+    .from('carte_profiles').select('id, user_id').eq('id', id).eq('team_owner_id', user.id).single();
   if (!member) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
 
+  // Supprimer le profil
   const { error } = await supabaseAdmin.from('carte_profiles').delete().eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+  // Supprimer aussi le compte Auth si présent
+  if (member.user_id) {
+    await supabaseAdmin.auth.admin.deleteUser(member.user_id);
+  }
+
   return NextResponse.json({ ok: true });
 }
