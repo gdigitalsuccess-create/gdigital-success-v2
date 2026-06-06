@@ -77,6 +77,9 @@ export type Profile = {
   bg_color?: string;
   text_color?: string;
   font_heading?: string;
+  label_rdv?: string;
+  label_documents?: string;
+  label_videos?: string;
 };
 
 function getLuminance(hex: string): number {
@@ -445,7 +448,7 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
                   <line x1="8" y1="2" x2="8" y2="6" />
                   <line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
-                Prendre RDV — Appel gratuit 30 min
+                {profile.label_rdv || 'Prendre RDV — Appel gratuit 30 min'}
               </a>
             )}
 
@@ -461,7 +464,7 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                       <polyline points="14 2 14 8 20 8" />
                     </svg>
-                    Documents
+                    {profile.label_documents || 'Documents'}
                     {openSection === 'documents' ? <ChevronUp /> : <ChevronDown />}
                   </button>
                 )}
@@ -476,7 +479,7 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
                       <rect x="14" y="14" width="7" height="7" />
                       <rect x="3" y="14" width="7" height="7" />
                     </svg>
-                    Réalisations
+                    {profile.portfolioTitle || 'Réalisations'}
                     {openSection === 'portfolio' ? <ChevronUp /> : <ChevronDown />}
                   </button>
                 )}
@@ -489,7 +492,7 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
                       <polygon points="23 7 16 12 23 17 23 7" />
                       <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
                     </svg>
-                    Vidéos
+                    {profile.label_videos || 'Vidéos'}
                     {openSection === 'videos' ? <ChevronUp /> : <ChevronDown />}
                   </button>
                 )}

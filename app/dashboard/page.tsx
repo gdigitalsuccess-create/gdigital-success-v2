@@ -138,6 +138,7 @@ const EMPTY_FORM = {
   phone: '', email: '', website: '', location: '', rdv_url: '',
   instagram: '', tiktok: '', facebook: '', linkedin: '', youtube: '', twitter: '', snapchat: '', telegram: '',
   ai_instructions: '',
+  label_rdv: '', label_documents: '', label_videos: '', portfolio_title: '',
 };
 
 const DOC_TYPES = ['pdf', 'brochure', 'catalogue', 'menu'] as const;
@@ -408,6 +409,10 @@ export default function DashboardPage() {
         snapchat:        data.snapchat        ?? '',
         telegram:        data.telegram        ?? '',
         ai_instructions: data.ai_instructions ?? '',
+        label_rdv:        data.label_rdv        ?? '',
+        label_documents:  data.label_documents  ?? '',
+        label_videos:     data.label_videos     ?? '',
+        portfolio_title:  data.portfolio_title  ?? '',
       });
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.access_token) {
@@ -1035,6 +1040,7 @@ export default function DashboardPage() {
             { id: 'section-profil',    emoji: '👤', label: 'Profil' },
             { id: 'section-contact',   emoji: '📞', label: 'Contact' },
             { id: 'section-rdv',       emoji: '📅', label: 'RDV' },
+            { id: 'section-labels',    emoji: '✏️', label: 'Labels' },
             { id: 'section-socials',   emoji: '🔗', label: 'Réseaux sociaux' },
           ].map(item => (
             <a key={item.id} href={`#${item.id}`} className={styles.sidebarLink}>
@@ -1387,6 +1393,28 @@ export default function DashboardPage() {
           <div className={styles.field}>
             <label className={styles.label}>URL Calendly / Cal.com</label>
             <input className={styles.input} value={form.rdv_url} onChange={set('rdv_url')} placeholder="https://calendly.com/monpseudo" />
+          </div>
+        </div>
+
+        {/* Labels des boutons */}
+        <div id="section-labels" className={styles.section}>
+          <p className={styles.sectionTitle}>Labels des boutons</p>
+          <p style={{ fontSize: '0.8rem', color: '#6B7280', margin: '-8px 0 16px' }}>Personnalisez les textes affichés sur votre carte. Laissez vide pour garder le texte par défaut.</p>
+          <div className={styles.field}>
+            <label className={styles.label}>Bouton RDV <span style={{ color: '#4B5563', fontWeight: 400 }}>(défaut : "Prendre RDV — Appel gratuit 30 min")</span></label>
+            <input className={styles.input} value={form.label_rdv} onChange={set('label_rdv')} placeholder="ex: Réserver une table, Commander, Prendre rendez-vous..." />
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label}>Bouton Documents <span style={{ color: '#4B5563', fontWeight: 400 }}>(défaut : "Documents")</span></label>
+            <input className={styles.input} value={form.label_documents} onChange={set('label_documents')} placeholder="ex: Nos menus, Brochures, Téléchargements..." />
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label}>Bouton Réalisations <span style={{ color: '#4B5563', fontWeight: 400 }}>(défaut : "Réalisations")</span></label>
+            <input className={styles.input} value={form.portfolio_title} onChange={set('portfolio_title')} placeholder="ex: Nos produits, Notre portfolio, Nos services..." />
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label}>Bouton Vidéos <span style={{ color: '#4B5563', fontWeight: 400 }}>(défaut : "Vidéos")</span></label>
+            <input className={styles.input} value={form.label_videos} onChange={set('label_videos')} placeholder="ex: Nos tutos, Nos recettes, Nos projets..." />
           </div>
         </div>
 
