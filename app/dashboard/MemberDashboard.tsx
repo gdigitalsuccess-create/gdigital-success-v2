@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import MiniCardPreview from './MiniCardPreview';
 
@@ -52,6 +52,15 @@ export default function MemberDashboard({ profile: initialProfile }: Props) {
   const [pwdMsg, setPwdMsg] = useState<string | null>(null);
   const photoRef = useRef<HTMLInputElement>(null);
   const coverRef = useRef<HTMLInputElement>(null);
+  const [parentTheme, setParentTheme] = useState<{ bg_color: string; primary_color: string; secondary_color: string; text_color: string; font_heading: string; logo_url: string; cover_url: string } | null>(null);
+
+  useEffect(() => {
+    supabase.from('carte_profiles')
+      .select('bg_color, primary_color, secondary_color, text_color, font_heading, logo_url, cover_url')
+      .eq('user_id', initialProfile.team_owner_id)
+      .single()
+      .then(({ data }) => { if (data) setParentTheme(data); });
+  }, [initialProfile.team_owner_id]);
 
   async function getToken() {
     const { data: { session } } = await supabase.auth.getSession();
@@ -120,7 +129,15 @@ export default function MemberDashboard({ profile: initialProfile }: Props) {
     else { setPwdMsg('Mot de passe mis à jour.'); setPwd({ current: '', next: '', confirm: '' }); }
   }
 
-  const theme = { bg_color: profile.bg_color, primary_color: profile.primary_color, secondary_color: profile.secondary_color, text_color: profile.text_color, font_heading: profile.font_heading };
+  const theme = {
+    bg_color:        parentTheme?.bg_color        || profile.bg_color,
+    primary_color:   parentTheme?.primary_color   || profile.primary_color,
+    secondary_color: parentTheme?.secondary_color || profile.secondary_color,
+    text_color:      parentTheme?.text_color      || profile.text_color,
+    font_heading:    parentTheme?.font_heading     || profile.font_heading,
+  };
+  const previewLogoUrl  = parentTheme?.logo_url  || profile.logo_url;
+  const previewCoverUrl = profile.allow_custom_cover && profile.cover_url ? profile.cover_url : (parentTheme?.cover_url || profile.cover_url);
 
   return (
     <div style={{ minHeight: '100vh', background: '#0D0D1A', color: 'white' }}>
@@ -275,7 +292,7 @@ export default function MemberDashboard({ profile: initialProfile }: Props) {
           <p style={{ fontSize: '0.72rem', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px' }}>Aperçu de votre carte</p>
           <MiniCardPreview
             form={{ name: form.name, title: form.title, company: '', phone: form.phone, email: form.email, website: '', location: '', rdv_url: '', instagram: '', tiktok: '', facebook: '', linkedin: form.linkedin, youtube: '', twitter: form.twitter, snapchat: '', telegram: '' }}
-            profile={{ photo_url: profile.photo_url, cover_url: profile.cover_url, cover_video_url: '', slug: profile.slug, logo_url: profile.logo_url }}
+            profile={{ photo_url: profile.photo_url, cover_url: previewCoverUrl, cover_video_url: '', slug: profile.slug, logo_url: previewLogoUrl }}
             theme={theme}
           />
         </div>
