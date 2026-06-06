@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await supabaseAdmin
     .from('carte_profiles')
-    .select('id, slug, name, title, email, phone, active, photo_url, created_at')
+    .select('id, slug, name, title, email, phone, active, photo_url, linkedin, twitter, created_at')
     .eq('team_owner_id', user.id)
     .order('created_at', { ascending: true });
 
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Limite de ${limit} membres atteinte` }, { status: 400 });
   }
 
-  const { name, title, email, phone, slug: slugInput } = await req.json();
+  const { name, title, email, phone, slug: slugInput, linkedin, twitter } = await req.json();
   if (!name?.trim() || !email?.trim()) {
     return NextResponse.json({ error: 'Nom et email requis' }, { status: 400 });
   }
@@ -80,8 +80,8 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await supabaseAdmin
     .from('carte_profiles')
-    .insert({ slug, name: name.trim(), title: title?.trim() || null, email: email.trim(), phone: phone?.trim() || null, active: true, plan: 'starter', team_owner_id: user.id })
-    .select('id, slug, name, title, email, phone, active, photo_url')
+    .insert({ slug, name: name.trim(), title: title?.trim() || null, email: email.trim(), phone: phone?.trim() || null, linkedin: linkedin?.trim() || null, twitter: twitter?.trim() || null, active: true, plan: 'starter', team_owner_id: user.id })
+    .select('id, slug, name, title, email, phone, active, photo_url, linkedin, twitter')
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
@@ -100,14 +100,14 @@ export async function PATCH(req: NextRequest) {
     .from('carte_profiles').select('id').eq('id', id).eq('team_owner_id', user.id).single();
   if (!member) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
 
-  const allowed = ['name', 'title', 'email', 'phone', 'active', 'slug'];
+  const allowed = ['name', 'title', 'email', 'phone', 'active', 'slug', 'linkedin', 'twitter'];
   const update = Object.fromEntries(Object.entries(fields).filter(([k]) => allowed.includes(k)));
 
   const { data, error } = await supabaseAdmin
     .from('carte_profiles')
     .update(update)
     .eq('id', id)
-    .select('id, slug, name, title, email, phone, active, photo_url')
+    .select('id, slug, name, title, email, phone, active, photo_url, linkedin, twitter')
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });

@@ -94,6 +94,8 @@ type TeamMember = {
   phone: string | null;
   active: boolean;
   photo_url: string | null;
+  linkedin: string | null;
+  twitter: string | null;
 };
 
 function slugifyMember(name: string) {
@@ -244,7 +246,7 @@ export default function DashboardPage() {
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
-  const [teamForm, setTeamForm] = useState({ name: '', title: '', email: '', phone: '', slug: '' });
+  const [teamForm, setTeamForm] = useState({ name: '', title: '', email: '', phone: '', slug: '', linkedin: '', twitter: '' });
   const [savingTeam, setSavingTeam] = useState(false);
   const [teamError, setTeamError] = useState<string | null>(null);
   const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
@@ -749,14 +751,14 @@ export default function DashboardPage() {
 
   function openTeamCreate() {
     setEditingMember(null);
-    setTeamForm({ name: '', title: '', email: '', phone: '', slug: '' });
+    setTeamForm({ name: '', title: '', email: '', phone: '', slug: '', linkedin: '', twitter: '' });
     setTeamError(null);
     setShowTeamModal(true);
   }
 
   function openTeamEdit(m: TeamMember) {
     setEditingMember(m);
-    setTeamForm({ name: m.name, title: m.title ?? '', email: m.email ?? '', phone: m.phone ?? '', slug: m.slug });
+    setTeamForm({ name: m.name, title: m.title ?? '', email: m.email ?? '', phone: m.phone ?? '', slug: m.slug, linkedin: m.linkedin ?? '', twitter: m.twitter ?? '' });
     setTeamError(null);
     setShowTeamModal(true);
   }
@@ -2223,6 +2225,26 @@ Langue de travail : [français, anglais...]`}
                 <label style={teamLabelStyle}>Poste</label>
                 <input style={teamInputStyle} placeholder="Directeur commercial" value={teamForm.title}
                   onChange={e => setTeamForm(f => ({ ...f, title: e.target.value }))} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div>
+                  <label style={teamLabelStyle}>LinkedIn</label>
+                  <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, overflow: 'hidden' }}>
+                    <span style={{ padding: '10px 8px', fontSize: '0.7rem', color: '#0A66C2', whiteSpace: 'nowrap', fontWeight: 700 }}>in/</span>
+                    <input style={{ ...teamInputStyle, border: 'none', borderRadius: 0, flex: 1, background: 'transparent' }}
+                      placeholder="jean-dupont" value={teamForm.linkedin}
+                      onChange={e => setTeamForm(f => ({ ...f, linkedin: e.target.value }))} />
+                  </div>
+                </div>
+                <div>
+                  <label style={teamLabelStyle}>X (Twitter)</label>
+                  <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, overflow: 'hidden' }}>
+                    <span style={{ padding: '10px 8px', fontSize: '0.7rem', color: '#9CA3AF', whiteSpace: 'nowrap', fontWeight: 700 }}>@</span>
+                    <input style={{ ...teamInputStyle, border: 'none', borderRadius: 0, flex: 1, background: 'transparent' }}
+                      placeholder="jeandupont" value={teamForm.twitter}
+                      onChange={e => setTeamForm(f => ({ ...f, twitter: e.target.value }))} />
+                  </div>
+                </div>
               </div>
               <div>
                 <label style={teamLabelStyle}>URL de la carte (slug) *</label>
