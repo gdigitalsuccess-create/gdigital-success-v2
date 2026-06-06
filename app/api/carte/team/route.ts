@@ -11,8 +11,9 @@ const BREVO_KEY    = process.env.BREVO_API_KEY!;
 const AGENCY_EMAIL = 'contact@digitalsucces.tech';
 const AGENCY_NAME  = 'G+Digital Success';
 
-async function sendWelcomeMember({ memberName, memberEmail, ownerName, slug }: { memberName: string; memberEmail: string; ownerName: string; slug: string }) {
+async function sendWelcomeMember({ memberName, memberEmail, ownerName, slug, tempPassword }: { memberName: string; memberEmail: string; ownerName: string; slug: string; tempPassword: string }) {
   const cardUrl = `https://digitalsucces.tech/c/${slug}`;
+  const dashboardUrl = `https://digitalsucces.tech/dashboard`;
   await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
@@ -27,15 +28,20 @@ async function sendWelcomeMember({ memberName, memberEmail, ownerName, slug }: {
           <p style="color:#374151;line-height:1.7;margin:0 0 16px">
             <strong>${ownerName}</strong> vient de créer votre carte de visite digitale via G+Digital Success.
           </p>
-          <p style="color:#374151;line-height:1.7;margin:0 0 24px">
-            Votre carte est accessible à cette adresse :
+          <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:16px 20px;margin:0 0 20px">
+            <p style="color:#1B3464;font-weight:700;font-size:0.9rem;margin:0 0 10px">Vos identifiants de connexion</p>
+            <p style="color:#374151;font-size:0.85rem;margin:0 0 4px">Email : <strong>${memberEmail}</strong></p>
+            <p style="color:#374151;font-size:0.85rem;margin:0 0 12px">Mot de passe temporaire : <strong style="font-family:monospace;background:#DBEAFE;padding:2px 6px;border-radius:4px">${tempPassword}</strong></p>
+            <a href="${dashboardUrl}" style="display:inline-block;background:#1B3464;color:white;font-weight:700;padding:10px 22px;border-radius:8px;text-decoration:none;font-size:0.85rem">
+              Accéder à mon espace →
+            </a>
+          </div>
+          <p style="color:#6B7280;font-size:0.82rem;line-height:1.6;margin:0 0 16px">
+            Pensez à changer votre mot de passe après la première connexion. Votre carte est aussi accessible ici :
           </p>
-          <a href="${cardUrl}" style="display:inline-block;background:#1B3464;color:white;font-weight:700;padding:12px 28px;border-radius:8px;text-decoration:none;font-size:0.95rem;margin-bottom:24px">
-            Voir ma carte →
+          <a href="${cardUrl}" style="display:inline-block;background:white;border:1px solid #D4A843;color:#D4A843;font-weight:700;padding:10px 22px;border-radius:8px;text-decoration:none;font-size:0.85rem;margin-bottom:24px">
+            Voir ma carte publique →
           </a>
-          <p style="color:#6B7280;font-size:0.82rem;line-height:1.6;margin:0">
-            Partagez ce lien ou demandez à ${ownerName} de vous fournir votre carte NFC pour commencer à partager vos coordonnées professionnelles.
-          </p>
           <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0" />
           <p style="color:#9CA3AF;font-size:0.75rem;margin:0">G+Digital Success · <a href="https://digitalsucces.tech" style="color:#D4A843;text-decoration:none">digitalsucces.tech</a></p>
         </div>
@@ -115,21 +121,43 @@ export async function POST(req: NextRequest) {
     .from('carte_profiles').select('id').eq('slug', slug).single();
   if (existing) return NextResponse.json({ error: 'Ce slug est déjà utilisé' }, { status: 409 });
 
+  // Vérifier si un compte Auth existe déjà pour cet email
+  const { data: existingAuth } = await supabaseAdmin.auth.admin.listUsers();
+  const alreadyExists = existingAuth?.users?.some(u => u.email === email.trim());
+  if (alreadyExists) return NextResponse.json({ error: 'Un compte existe déjà pour cet email' }, { status: 409 });
+
+  // Créer le compte Supabase Auth du membre
+  const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase() + '!';
+  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    email: email.trim(),
+    password: tempPassword,
+    email_confirm: true,
+  });
+  if (authError) return NextResponse.json({ error: authError.message }, { status: 400 });
+
+  const memberId = authData.user.id;
+
+  // Créer le profil avec user_id lié
   const { data, error } = await supabaseAdmin
     .from('carte_profiles')
-    .insert({ slug, name: name.trim(), title: title?.trim() || null, email: email.trim(), phone: phone?.trim() || null, linkedin: linkedin?.trim() || null, twitter: twitter?.trim() || null, active: true, plan: 'starter', team_owner_id: user.id })
+    .insert({ slug, name: name.trim(), title: title?.trim() || null, email: email.trim(), phone: phone?.trim() || null, linkedin: linkedin?.trim() || null, twitter: twitter?.trim() || null, active: true, plan: 'starter', team_owner_id: user.id, user_id: memberId })
     .select('id, slug, name, title, email, phone, active, photo_url, cover_url, linkedin, twitter, allow_custom_cover')
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) {
+    await supabaseAdmin.auth.admin.deleteUser(memberId);
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
 
   const { data: ownerProfile } = await supabaseAdmin
     .from('carte_profiles').select('name').eq('user_id', user.id).single();
+
   await sendWelcomeMember({
     memberName: name.trim(),
     memberEmail: email.trim(),
     ownerName: ownerProfile?.name ?? 'Votre entreprise',
     slug,
+    tempPassword,
   });
 
   return NextResponse.json(data);

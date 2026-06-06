@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import styles from './dashboard.module.css';
 import MiniCardPreview from './MiniCardPreview';
+import MemberDashboard from './MemberDashboard';
 
 type Profile = {
   id: string;
@@ -36,6 +37,8 @@ type Profile = {
   text_color: string;
   font_heading: string;
   logo_url: string;
+  team_owner_id: string | null;
+  allow_custom_cover: boolean;
 };
 
 type Doc = {
@@ -965,10 +968,15 @@ export default function DashboardPage() {
     );
   }
 
+  // Membre d'équipe → dashboard simplifié
+  if (profile.team_owner_id) {
+    return <MemberDashboard profile={profile as Parameters<typeof MemberDashboard>[0]['profile']} />;
+  }
+
   const plan = (profile.plan ?? 'starter').toLowerCase();
   const planStyle = PLAN_STYLE[plan] ?? PLAN_STYLE.starter;
 
-  // ---- Dashboard ----
+  // ---- Dashboard patron ----
   return (
     <div className={styles.page}>
       {/* Hidden file inputs */}
