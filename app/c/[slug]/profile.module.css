@@ -30,6 +30,11 @@
 }
 
 /* ── HERO ── */
+.heroWrapper {
+  position: relative;
+  width: 100%;
+}
+
 .hero {
   position: relative;
   width: 100%;
@@ -61,7 +66,7 @@
 
 .heroLogoWrap {
   position: absolute;
-  bottom: -28px;
+  bottom: -30px;
   right: 24px;
   z-index: 10;
   width: 64px;

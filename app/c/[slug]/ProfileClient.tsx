@@ -282,24 +282,35 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
 
       <div className={styles.inner}>
 
-        {/* ── HERO ── */}
-        <div
-          className={styles.hero}
-          style={!heroHasMedia ? { background: `linear-gradient(150deg, ${primaryColor} 0%, ${secondaryColor} 100%)` } : undefined}
-        >
-          {/* Média de fond */}
-          {profile.coverVideo ? (
-            <video src={profile.coverVideo} autoPlay muted loop playsInline className={styles.heroBg} />
-          ) : profile.cover ? (
-            <img src={profile.cover} alt="cover" className={styles.heroBg} />
-          ) : profile.photo ? (
-            <img src={profile.photo} alt={profile.name} className={styles.heroBg} />
-          ) : null}
+        {/* ── HERO WRAPPER (position relative pour le logo qui dépasse) ── */}
+        <div className={styles.heroWrapper}>
+          <div
+            className={styles.hero}
+            style={!heroHasMedia ? { background: `linear-gradient(150deg, ${primaryColor} 0%, ${secondaryColor} 100%)` } : undefined}
+          >
+            {/* Média de fond */}
+            {profile.coverVideo ? (
+              <video src={profile.coverVideo} autoPlay muted loop playsInline className={styles.heroBg} />
+            ) : profile.cover ? (
+              <img src={profile.cover} alt="cover" className={styles.heroBg} />
+            ) : profile.photo ? (
+              <img src={profile.photo} alt={profile.name} className={styles.heroBg} />
+            ) : null}
 
-          {/* Dégradé sombre bas */}
-          <div className={styles.heroGradient} />
+            {/* Dégradé sombre bas */}
+            <div className={styles.heroGradient} />
 
-          {/* Logo — fixe bas droite, à cheval sur le content */}
+            {/* Nom + Titre */}
+            <div className={styles.heroInfo}>
+              <h1 className={styles.heroName}>{profile.name}</h1>
+              <p className={styles.heroMeta}>
+                {profile.title}
+                {profile.company && <span className={styles.heroCompany}> · {profile.company}</span>}
+              </p>
+            </div>
+          </div>
+
+          {/* Logo — en dehors du hero pour ne pas être clippé */}
           {profile.logo_url && (
             <div className={styles.heroLogoWrap}>
               <img
@@ -309,15 +320,6 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
               />
             </div>
           )}
-
-          {/* Nom + Titre */}
-          <div className={styles.heroInfo}>
-            <h1 className={styles.heroName}>{profile.name}</h1>
-            <p className={styles.heroMeta}>
-              {profile.title}
-              {profile.company && <span className={styles.heroCompany}> · {profile.company}</span>}
-            </p>
-          </div>
         </div>
 
         {/* ── CONTENT ── */}
