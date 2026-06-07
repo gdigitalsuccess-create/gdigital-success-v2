@@ -1,4 +1,4 @@
-const CACHE = 'gdigital-v3';
+const CACHE = 'gdigital-v4';
 const STATIC = ['/assets/logo.png', '/assets/favicon.png', '/assets/icon-maskable.png'];
 
 // Domaines autorisés pour le cache cross-origin
@@ -86,7 +86,9 @@ self.addEventListener('fetch', event => {
         if (cached) return cached;
 
         return fetch(event.request).then(response => {
-          if (!response.ok) return response;
+          // Cacher si succès OU si réponse opaque (images <img> cross-origin sans CORS header)
+          const cacheable = response.ok || response.type === 'opaque';
+          if (!cacheable) return response;
 
           // Ne pas cacher les vidéos trop lourdes (>50MB)
           const contentLength = response.headers.get('content-length');
