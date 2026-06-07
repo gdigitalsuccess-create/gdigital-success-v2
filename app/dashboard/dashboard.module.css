@@ -126,35 +126,102 @@
 /* ---- Cover + Avatar ---- */
 .coverSection {
   position: relative;
-  height: 160px;
+  height: 180px;
   cursor: pointer;
 }
+/* Fond clippé séparément pour permettre au logo de déborder */
+.coverBg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 0;
+}
 .coverImg {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: 160px;
+  height: 100%;
   object-fit: cover;
   object-position: center;
   display: block;
 }
 .coverDefault {
-  width: 100%;
-  height: 160px;
+  position: absolute;
+  inset: 0;
   background: linear-gradient(135deg, #1a1a2e, #2d1b69);
+}
+/* Dégradé sombre bas — comme la vraie carte */
+.coverGradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0.72) 100%);
+  pointer-events: none;
+}
+/* Nom + titre overlaid en bas du hero */
+.coverHeroInfo {
+  position: absolute;
+  bottom: 14px;
+  left: 16px;
+  right: 68px;
+  z-index: 2;
+  pointer-events: none;
+}
+.coverHeroName {
+  color: #fff;
+  font-weight: 800;
+  font-size: 1rem;
+  line-height: 1.2;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+.coverHeroMeta {
+  color: rgba(255,255,255,0.85);
+  font-size: 0.75rem;
+  margin-top: 2px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+.coverHeroCompany {
+  color: #00CFFF;
+  filter: brightness(1.2);
+}
+/* Logo badge bas droite — miroir exact de la carte */
+.coverLogoBadge {
+  position: absolute;
+  bottom: -20px;
+  right: 16px;
+  z-index: 10;
+  padding: 3px;
+  border-radius: 50%;
+  background: #0D0D1A;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+.coverLogoBadgeInner {
+  padding: 3px;
+  border-radius: 50%;
+  background: white;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+.coverLogoBadgeImg {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: contain;
+  display: block;
+}
+/* Boutons édition au hover */
 .coverOverlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0,0,0,0.5);
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 10px;
   opacity: 0;
   transition: opacity 0.2s;
+  z-index: 20;
 }
 .coverSection:hover .coverOverlay {
   opacity: 1;
@@ -165,13 +232,14 @@
   color: white;
 }
 
+/* Avatar photo de profil — séparé du hero, pas d'overlap */
 .avatarSection {
   display: flex;
   justify-content: center;
-  margin-top: -48px;
-  margin-bottom: 16px;
+  margin-top: 32px;
+  margin-bottom: 8px;
   position: relative;
-  z-index: 10;
+  z-index: 2;
 }
 .avatarWrap {
   position: relative;
@@ -180,8 +248,8 @@
 .avatarRing {
   padding: 3px;
   border-radius: 50%;
-  background: #00CFFF;
-  box-shadow: 0 4px 20px rgba(0,207,255,0.3);
+  background: rgba(255,255,255,0.12);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
 }
 .avatarInner {
   padding: 3px;

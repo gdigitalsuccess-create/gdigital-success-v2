@@ -92,6 +92,29 @@
   display: block;
 }
 
+/* Photo de profil centrée entre hero et contenu */
+.heroPhotoWrap {
+  position: absolute;
+  bottom: -36px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9;
+}
+.heroPhotoRing {
+  padding: 3px;
+  border-radius: 50%;
+  background: var(--c-bg);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.heroPhoto {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  border: 2px solid rgba(255,255,255,0.85);
+}
+
 .heroInfo {
   position: absolute;
   bottom: 28px;

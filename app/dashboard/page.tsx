@@ -5,6 +5,7 @@ import type { User } from '@supabase/supabase-js';
 import styles from './dashboard.module.css';
 import MiniCardPreview from './MiniCardPreview';
 import MemberDashboard from './MemberDashboard';
+import CropModal from './CropModal';
 
 type Profile = {
   id: string;
@@ -205,6 +206,7 @@ export default function DashboardPage() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingCoverVideo, setUploadingCoverVideo] = useState(false);
+  const [cropState, setCropState] = useState<{ file: File; type: 'photo' | 'cover' } | null>(null);
 
   // Documents state
   const [docs, setDocs]               = useState<Doc[]>([]);
@@ -533,6 +535,14 @@ export default function DashboardPage() {
       setProfile(prev => prev ? { ...prev, [field]: url } : prev);
     }
     setter(false);
+  }
+
+  async function handleCropConfirm(blob: Blob) {
+    if (!cropState) return;
+    const type = cropState.type;
+    setCropState(null);
+    const file = new File([blob], `crop-${type}.jpg`, { type: 'image/jpeg' });
+    await handlePhotoUpload(file, type);
   }
 
   async function handleCoverVideoUpload(file: File) {
@@ -1017,9 +1027,9 @@ export default function DashboardPage() {
     <div className={styles.page}>
       {/* Hidden file inputs */}
       <input ref={photoInputRef} className={styles.fileInput} type="file" accept="image/*"
-        onChange={e => e.target.files?.[0] && handlePhotoUpload(e.target.files[0], 'photo')} />
+        onChange={e => { if (e.target.files?.[0]) { setCropState({ file: e.target.files[0], type: 'photo' }); e.target.value = ''; } }} />
       <input ref={coverInputRef} className={styles.fileInput} type="file" accept="image/*"
-        onChange={e => e.target.files?.[0] && handlePhotoUpload(e.target.files[0], 'cover')} />
+        onChange={e => { if (e.target.files?.[0]) { setCropState({ file: e.target.files[0], type: 'cover' }); e.target.value = ''; } }} />
       <input ref={coverVideoInputRef} className={styles.fileInput} type="file" accept="video/mp4,video/webm,video/quicktime"
         onChange={e => { if (e.target.files?.[0]) handleCoverVideoUpload(e.target.files[0]); }} />
       <input ref={docInputRef} className={styles.fileInput} type="file" accept=".pdf,application/pdf"
@@ -1091,31 +1101,60 @@ export default function DashboardPage() {
         {/* Contenu principal */}
         <div className={styles.mainContent}>
 
-      {/* Cover photo / video — profil uniquement */}
+      {/* Hero carte — même structure que la carte publique */}
       {activeSection === 'section-profil' && (
         <div className={styles.coverSection}>
-          {profile.cover_video_url
-            ? <video src={profile.cover_video_url} autoPlay muted loop playsInline className={styles.coverImg} style={{ objectFit: 'cover', width: '100%', height: 144, display: 'block' }} />
-            : profile.cover_url
-              ? <img src={profile.cover_url} alt="cover" className={styles.coverImg} />
-              : <div className={styles.coverDefault} />}
+          {/* Fond clippé séparément (permet au logo de déborder) */}
+          <div className={styles.coverBg}>
+            {profile.cover_video_url
+              ? <video src={profile.cover_video_url} autoPlay muted loop playsInline className={styles.coverImg} />
+              : profile.cover_url
+                ? <img src={profile.cover_url} alt="cover" className={styles.coverImg} />
+                : <div className={styles.coverDefault} />}
+          </div>
+
+          {/* Dégradé bas */}
+          <div className={styles.coverGradient} />
+
+          {/* Nom + titre overlaid */}
+          <div className={styles.coverHeroInfo}>
+            <div className={styles.coverHeroName}>
+              {form.name || <span style={{ opacity: 0.4 }}>Votre nom</span>}
+            </div>
+            {(form.title || form.company) && (
+              <div className={styles.coverHeroMeta}>
+                {form.title}{form.company && <span className={styles.coverHeroCompany}> · {form.company}</span>}
+              </div>
+            )}
+          </div>
+
+          {/* Logo badge bas droite */}
+          {profile.logo_url && (
+            <div className={styles.coverLogoBadge}>
+              <div className={styles.coverLogoBadgeInner}>
+                <img src={profile.logo_url} alt="logo" className={styles.coverLogoBadgeImg} />
+              </div>
+            </div>
+          )}
+
+          {/* Boutons édition — visibles au hover */}
           <div className={styles.coverOverlay} style={{ flexDirection: 'row', justifyContent: 'center', gap: 10 }}>
             <button type="button" onClick={() => coverInputRef.current?.click()}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 8, padding: '7px 13px', color: 'white', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.65)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: 8, padding: '7px 13px', color: 'white', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" width="15" height="15">
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                 <circle cx="12" cy="13" r="4"/>
               </svg>
-              {uploadingCover ? '...' : 'Photo'}
+              {uploadingCover ? '...' : 'Couverture'}
             </button>
             {plan === 'starter' ? (
               <button type="button" onClick={() => setUpgradeTarget('pro')}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(212,168,67,0.4)', borderRadius: 8, padding: '7px 13px', color: '#D4A843', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.65)', border: '1px solid rgba(212,168,67,0.4)', borderRadius: 8, padding: '7px 13px', color: '#D4A843', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
                 🔒 Vidéo — Pro
               </button>
             ) : (
               <button type="button" onClick={() => coverVideoInputRef.current?.click()}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 8, padding: '7px 13px', color: 'white', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.65)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: 8, padding: '7px 13px', color: 'white', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" width="15" height="15">
                   <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                 </svg>
@@ -1126,7 +1165,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Avatar + Plan badge — profil uniquement */}
+      {/* Photo de profil + Plan — profil uniquement */}
       <div style={{ display: activeSection === 'section-profil' ? 'block' : 'none' }}>
         <div className={styles.avatarSection}>
           <div className={styles.avatarWrap} onClick={() => photoInputRef.current?.click()}>
@@ -1135,7 +1174,7 @@ export default function DashboardPage() {
                 {profile.photo_url
                   ? <img src={profile.photo_url} alt={profile.name} className={styles.avatarImg} />
                   : <div className={styles.avatarPlaceholder}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.5" width="36" height="36">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.5" width="32" height="32">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                         <circle cx="12" cy="7" r="4"/>
                       </svg>
@@ -1145,7 +1184,7 @@ export default function DashboardPage() {
             <div className={styles.avatarOverlay}>
               <span className={styles.uploadingLabel}>
                 {uploadingPhoto ? '...' : (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" width="20" height="20">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" width="18" height="18">
                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                     <circle cx="12" cy="13" r="4"/>
                   </svg>
@@ -2449,6 +2488,16 @@ Langue de travail : [français, anglais...]`}
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal de recadrage photo */}
+      {cropState && (
+        <CropModal
+          file={cropState.file}
+          aspect={cropState.type === 'photo' ? 1 : 3}
+          onConfirm={handleCropConfirm}
+          onCancel={() => setCropState(null)}
+        />
       )}
     </div>
   );

@@ -336,7 +336,10 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
         <div className={styles.content}>
 
           {/* Bouton Enregistrer */}
-          <div className={styles.saveBtnWrap}>
+          <div
+            className={styles.saveBtnWrap}
+            style={profile.logo_url ? undefined : { paddingTop: '28px' }}
+          >
             <a
               href={getSaveContactUrl(profile)}
               download={`${profile.slug}.vcf`}
