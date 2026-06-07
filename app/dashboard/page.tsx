@@ -1165,40 +1165,14 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Photo de profil + Plan — profil uniquement */}
-      <div style={{ display: activeSection === 'section-profil' ? 'block' : 'none' }}>
-        <div className={styles.avatarSection}>
-          <div className={styles.avatarWrap} onClick={() => photoInputRef.current?.click()}>
-            <div className={styles.avatarRing}>
-              <div className={styles.avatarInner}>
-                {profile.photo_url
-                  ? <img src={profile.photo_url} alt={profile.name} className={styles.avatarImg} />
-                  : <div className={styles.avatarPlaceholder}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.5" width="32" height="32">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                      </svg>
-                    </div>}
-              </div>
-            </div>
-            <div className={styles.avatarOverlay}>
-              <span className={styles.uploadingLabel}>
-                {uploadingPhoto ? '...' : (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" width="18" height="18">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                    <circle cx="12" cy="13" r="4"/>
-                  </svg>
-                )}
-              </span>
-            </div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+      {/* Badge plan — profil uniquement */}
+      {activeSection === 'section-profil' && (
+        <div style={{ display: 'flex', justifyContent: 'center', margin: '32px 0 16px' }}>
           <span className={styles.planBadge} style={{ background: planStyle.bg, color: planStyle.color }}>
             Plan {plan}
           </span>
         </div>
-      </div>
+      )}
 
       {/* ---- Section Mon Plan ---- */}
       {(() => {
