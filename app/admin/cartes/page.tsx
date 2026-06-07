@@ -77,7 +77,7 @@ export default function CartesPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<CarteProfile | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [membersDrawer, setMembersDrawer] = useState<CarteProfile | null>(null);
-  const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
+  const [openActionMenu, setOpenActionMenu] = useState<{ id: string; top: number; right: number } | null>(null);
 
   // Comptes mères uniquement dans le tableau
   const cartes = allProfiles.filter(p => !p.team_owner_id);
@@ -383,12 +383,12 @@ export default function CartesPage() {
                     <td>
                       <div style={{ position: 'relative', display: 'inline-block' }}>
                         <button
-                          onClick={e => { e.stopPropagation(); setOpenActionMenu(prev => prev === carte.id ? null : carte.id); }}
+                          onClick={e => { e.stopPropagation(); const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); setOpenActionMenu(prev => prev?.id === carte.id ? null : { id: carte.id, top: r.bottom + 4, right: window.innerWidth - r.right }); }}
                           style={{ background: 'var(--dark-3)', border: '1px solid var(--card-border)', borderRadius: 8, width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '1.1rem', letterSpacing: 1 }}
                           title="Actions"
                         >⋮</button>
-                        {openActionMenu === carte.id && (
-                          <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', right: 0, top: 38, background: 'var(--dark-2)', border: '1px solid var(--card-border)', borderRadius: 10, padding: '6px 0', minWidth: 180, zIndex: 400, boxShadow: '0 8px 32px rgba(0,0,0,0.45)' }}>
+                        {openActionMenu?.id === carte.id && (
+                          <div onClick={e => e.stopPropagation()} style={{ position: 'fixed', top: openActionMenu.top, right: openActionMenu.right, background: 'var(--dark-2)', border: '1px solid var(--card-border)', borderRadius: 10, padding: '6px 0', minWidth: 180, zIndex: 400, boxShadow: '0 8px 32px rgba(0,0,0,0.45)' }}>
                             <a href={`https://digitalsucces.tech/c/${carte.slug}`} target="_blank" rel="noreferrer"
                               style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 16px', fontSize: '0.82rem', color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>
                               <span>↗</span> Voir la carte
