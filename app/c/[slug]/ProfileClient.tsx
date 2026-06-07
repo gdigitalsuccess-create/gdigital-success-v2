@@ -274,69 +274,59 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
     document.head.appendChild(link);
   }, [fontHeading]);
 
+  const heroHasMedia = !!(profile.photo || profile.cover || profile.coverVideo);
+  const logoPositionClass =
+    profile.logo_position === 'left' ? styles.heroLogoLeft :
+    profile.logo_position === 'right' ? styles.heroLogoRight :
+    styles.heroLogoCenter;
+
   return (
     <main className={styles.page} style={themeVars}>
       <VisitTracker profileId={profile.id} />
 
       <div className={styles.inner}>
-        {/* Logo */}
-        <div className={styles.logoBar} style={{
-          justifyContent: profile.logo_url
-            ? (profile.logo_position === 'left' ? 'flex-start' : profile.logo_position === 'right' ? 'flex-end' : 'center')
-            : 'center'
-        }}>
-          <img
-            src={profile.logo_url || '/assets/logo.png'}
-            alt={profile.logo_url ? (profile.company || profile.name) : 'G+Digital Success'}
-            className={styles.logo}
-            style={profile.logo_url ? { maxHeight: 48, maxWidth: 160, objectFit: 'contain' } : undefined}
-          />
+
+        {/* ── HERO ── */}
+        <div
+          className={styles.hero}
+          style={!heroHasMedia ? { background: `linear-gradient(150deg, ${primaryColor} 0%, ${secondaryColor} 100%)` } : undefined}
+        >
+          {/* Média de fond */}
+          {profile.coverVideo ? (
+            <video src={profile.coverVideo} autoPlay muted loop playsInline className={styles.heroBg} />
+          ) : profile.cover ? (
+            <img src={profile.cover} alt="cover" className={styles.heroBg} />
+          ) : profile.photo ? (
+            <img src={profile.photo} alt={profile.name} className={styles.heroBg} />
+          ) : null}
+
+          {/* Dégradé sombre bas */}
+          <div className={styles.heroGradient} />
+
+          {/* Logo */}
+          {profile.logo_url && (
+            <img
+              src={profile.logo_url}
+              alt={profile.company || profile.name}
+              className={`${styles.heroLogo} ${logoPositionClass}`}
+            />
+          )}
+
+          {/* Nom + Titre */}
+          <div className={styles.heroInfo}>
+            <h1 className={styles.heroName}>{profile.name}</h1>
+            <p className={styles.heroMeta}>
+              {profile.title}
+              {profile.company && <span className={styles.heroCompany}> · {profile.company}</span>}
+            </p>
+          </div>
         </div>
 
-        <div className={styles.card}>
-          {/* Cover + Avatar */}
-          <div className={styles.coverSection}>
-            {profile.coverVideo ? (
-              <video
-                src={profile.coverVideo}
-                autoPlay
-                muted
-                loop
-                playsInline
-                className={styles.coverImg}
-                style={{ objectFit: 'cover', width: '100%', height: 144, display: 'block' }}
-              />
-            ) : profile.cover ? (
-              <img src={profile.cover} alt="cover" className={styles.coverImg} />
-            ) : (
-              <div className={styles.coverDefault}>
-                {!profile.logo_url && (
-                  <img
-                    src='/assets/logo.png'
-                    alt='G+Digital'
-                    className={styles.coverDefaultLogo}
-                  />
-                )}
-              </div>
-            )}
-            {profile.photo && (
-              <div className={styles.avatarWrap}>
-                <div className={styles.avatarRing}>
-                  <div className={styles.avatarInner}>
-                    <img src={profile.photo} alt={profile.name} className={styles.avatarImg} />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+        {/* ── CONTENT ── */}
+        <div className={styles.content}>
 
-          {/* Name & Info */}
-          <div className={styles.infoSection}>
-            <h1 className={styles.name}>{profile.name}</h1>
-            <p className={styles.titleRow}>
-              {profile.title}
-              {profile.company && <span className={styles.company}> · {profile.company}</span>}
-            </p>
+          {/* Bouton Enregistrer */}
+          <div className={styles.saveBtnWrap}>
             <a
               href={getSaveContactUrl(profile)}
               download={`${profile.slug}.vcf`}
@@ -630,7 +620,7 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
               ))}
             </div>
           )}
-        </div>
+        </div>{/* fin .content */}
 
         {/* QR Code */}
         <div className={styles.qrCard}>

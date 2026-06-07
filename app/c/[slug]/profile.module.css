@@ -1,7 +1,6 @@
 /* Profile card page — /c/[slug] */
 
 .page {
-  /* ── Thème dynamique : injecté via style={{ }} dans ProfileClient ── */
   --c-bg:               #0D0D1A;
   --c-card:             #13131F;
   --c-primary:          #00CFFF;
@@ -19,126 +18,115 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 32px 16px;
   font-family: var(--c-font);
+  padding-bottom: 32px;
 }
 
 .inner {
   width: 100%;
-  max-width: 384px;
+  max-width: 480px;
   display: flex;
   flex-direction: column;
 }
 
-/* Logo bar */
-.logoBar {
-  display: flex;
+/* ── HERO ── */
+.hero {
+  position: relative;
   width: 100%;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 32px;
-}
-.logo {
-  height: 40px;
-  max-width: 160px;
-  object-fit: contain;
+  height: clamp(260px, 50vh, 380px);
+  overflow: hidden;
+  background: var(--c-primary);
 }
 
-/* Main card */
-.card {
+.heroBg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+.heroGradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.12) 0%,
+    rgba(0,0,0,0) 30%,
+    rgba(0,0,0,0.72) 100%
+  );
+}
+
+.heroLogo {
+  position: absolute;
+  top: 18px;
+  height: 44px;
+  max-width: 150px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+  z-index: 2;
+}
+.heroLogoLeft   { left: 18px; }
+.heroLogoCenter { left: 50%; transform: translateX(-50%); }
+.heroLogoRight  { right: 18px; }
+
+.heroInfo {
+  position: absolute;
+  bottom: 28px;
+  left: 24px;
+  right: 24px;
+  z-index: 2;
+}
+
+.heroName {
+  color: #FFFFFF;
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1.15;
+  margin: 0;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.55);
+}
+
+.heroMeta {
+  color: rgba(255,255,255,0.85);
+  font-size: 0.9rem;
+  margin: 5px 0 0;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.5);
+}
+
+.heroCompany {
+  color: var(--c-primary);
+  filter: brightness(1.4);
+}
+
+/* ── CONTENT ── */
+.content {
   background: var(--c-card);
-  border-radius: 24px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 24px 24px 0 0;
+  margin-top: -24px;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.35);
   overflow: hidden;
 }
 
-/* Cover + avatar */
-.coverSection {
-  position: relative;
-}
-.coverImg {
-  width: 100%;
-  height: 144px;
-  object-fit: cover;
-  object-position: top;
-  display: block;
-}
-.coverDefault {
-  width: 100%;
-  height: 144px;
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.coverDefaultLogo {
-  height: 64px;
-  object-fit: contain;
-}
-.avatarWrap {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translate(-50%, 50%);
-  z-index: 10;
-}
-.avatarRing {
-  padding: 3px;
-  border-radius: 50%;
-  background: var(--c-primary);
-  box-shadow: 0 8px 24px var(--c-primary-30);
-}
-.avatarInner {
-  padding: 3px;
-  border-radius: 50%;
-  background: var(--c-card);
-}
-.avatarImg {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  object-fit: cover;
-  object-position: top;
-  display: block;
+.saveBtnWrap {
+  padding: 24px 24px 8px;
 }
 
-/* Info section */
-.infoSection {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 64px 24px 24px;
-  gap: 6px;
-}
-.name {
-  color: var(--c-text);
-  font-weight: 700;
-  font-size: 1.5rem;
-  text-align: center;
-  line-height: 1.25;
-  margin: 4px 0 0;
-}
-.titleRow {
-  color: #9CA3AF;
-  font-size: 0.875rem;
-  text-align: center;
-}
-.company {
-  color: var(--c-primary);
-}
 .saveBtn {
-  margin-top: 16px;
   width: 100%;
   background: var(--c-primary);
   color: var(--c-text-on-primary);
   font-weight: 700;
   border-radius: 9999px;
-  padding: 12px 24px;
+  padding: 14px 24px;
   text-align: center;
-  font-size: 0.875rem;
-  letter-spacing: 0.025em;
-  box-shadow: 0 4px 12px var(--c-primary-30);
+  font-size: 0.9rem;
+  letter-spacing: 0.03em;
+  box-shadow: 0 4px 14px var(--c-primary-30);
   text-decoration: none;
   display: block;
   transition: filter 0.2s;
@@ -303,7 +291,7 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  margin-top: 16px;
+  margin: 16px 16px 0;
 }
 .qrLabel {
   color: #6B7280;
@@ -335,6 +323,7 @@
   color: #4B5563;
   font-size: 0.75rem;
   margin-top: 8px;
+  padding: 0 16px;
 }
 .footerAccent {
   color: var(--c-primary);
