@@ -69,10 +69,10 @@
   bottom: -48px;
   right: 24px;
   z-index: 10;
-  /* Anneau couleur primaire */
+  /* Anneau couleur fond — effet logo ancré */
   padding: 4px;
   border-radius: 50%;
-  background: var(--c-primary);
+  background: var(--c-bg);
   box-shadow: 0 8px 24px rgba(0,0,0,0.35);
 }
 .heroLogoInner {
@@ -132,7 +132,7 @@
 }
 
 .saveBtnWrap {
-  padding: 60px 24px 8px;
+  padding: 72px 24px 8px;
 }
 
 .saveBtn {
