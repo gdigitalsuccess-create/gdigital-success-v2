@@ -14,12 +14,13 @@
   --c-secondary-50:     color-mix(in srgb, var(--c-secondary) 50%, transparent);
 
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--c-bg);
   display: flex;
   flex-direction: column;
   align-items: center;
   font-family: var(--c-font);
-  padding-bottom: 32px;
+  padding-bottom: calc(32px + env(safe-area-inset-bottom));
 }
 
 .inner {
@@ -38,7 +39,7 @@
 .hero {
   position: relative;
   width: 100%;
-  height: clamp(260px, 50vh, 380px);
+  height: calc(clamp(260px, 50vh, 400px) + env(safe-area-inset-top));
   overflow: hidden;
   background: var(--c-primary);
 }
