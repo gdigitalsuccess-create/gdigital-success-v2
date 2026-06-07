@@ -77,6 +77,7 @@ export default function CartesPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<CarteProfile | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [membersDrawer, setMembersDrawer] = useState<CarteProfile | null>(null);
+  const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
 
   // Comptes mères uniquement dans le tableau
   const cartes = allProfiles.filter(p => !p.team_owner_id);
@@ -86,6 +87,12 @@ export default function CartesPage() {
     : [];
 
   useEffect(() => { fetchCartes(); }, []);
+  useEffect(() => {
+    if (!openActionMenu) return;
+    const close = () => setOpenActionMenu(null);
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [openActionMenu]);
 
   async function fetchCartes() {
     setLoading(true);
@@ -374,40 +381,47 @@ export default function CartesPage() {
                     <td style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{new Date(carte.created_at).toLocaleDateString('fr-FR')}</td>
                     <td><span className={`status-badge ${carte.active ? 'status-converted' : 'status-lost'}`}>{carte.active ? 'Active' : 'Inactive'}</span></td>
                     <td>
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                        <a href={`https://digitalsucces.tech/c/${carte.slug}`} target="_blank" rel="noreferrer"
-                          style={{ fontSize: '0.78rem', color: 'var(--primary)', fontWeight: 600 }}>Voir ↗</a>
-                        <button onClick={() => toggleActive(carte.id, carte.active)}
-                          style={{ fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none', color: carte.active ? 'var(--accent)' : 'var(--secondary)', padding: 0 }}>
-                          {carte.active ? 'Désactiver' : 'Activer'}
-                        </button>
-                        <button onClick={() => { setThemeModal({ id: carte.id, slug: carte.slug }); setTheme({ bg_color: carte.bg_color || EMPTY_THEME.bg_color, primary_color: carte.primary_color || EMPTY_THEME.primary_color, secondary_color: carte.secondary_color || EMPTY_THEME.secondary_color, text_color: carte.text_color || EMPTY_THEME.text_color, font_heading: carte.font_heading || EMPTY_THEME.font_heading, logo_url: carte.logo_url || '', logo_position: carte.logo_position || 'center' }); }}
-                          style={{ fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none', color: 'var(--text-muted)', padding: 0 }}>
-                          🎨 Thème
-                        </button>
-                        <button onClick={() => setDeleteConfirm(carte)}
-                          style={{ fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none', color: '#EF4444', padding: 0 }}>
-                          Supprimer
-                        </button>
-                        {['pro','business','business_team'].includes(plan) && (
-                          <>
-                            <button
-                              onClick={() => addExtraMessages(carte.id, carte.extra_chat_messages ?? 0)}
-                              disabled={addingMsgs === carte.id}
-                              title={`Messages supplémentaires : ${carte.extra_chat_messages ?? 0}`}
-                              style={{ fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', background: 'rgba(0,207,255,0.1)', border: '1px solid rgba(0,207,255,0.3)', color: '#00CFFF', borderRadius: 6, padding: '3px 8px' }}
-                            >
-                              {addingMsgs === carte.id ? '...' : `+200 msgs (${carte.extra_chat_messages ?? 0})`}
+                      <div style={{ position: 'relative', display: 'inline-block' }}>
+                        <button
+                          onClick={e => { e.stopPropagation(); setOpenActionMenu(prev => prev === carte.id ? null : carte.id); }}
+                          style={{ background: 'var(--dark-3)', border: '1px solid var(--card-border)', borderRadius: 8, width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '1.1rem', letterSpacing: 1 }}
+                          title="Actions"
+                        >⋮</button>
+                        {openActionMenu === carte.id && (
+                          <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', right: 0, top: 38, background: 'var(--dark-2)', border: '1px solid var(--card-border)', borderRadius: 10, padding: '6px 0', minWidth: 180, zIndex: 400, boxShadow: '0 8px 32px rgba(0,0,0,0.45)' }}>
+                            <a href={`https://digitalsucces.tech/c/${carte.slug}`} target="_blank" rel="noreferrer"
+                              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 16px', fontSize: '0.82rem', color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>
+                              <span>↗</span> Voir la carte
+                            </a>
+                            <button onClick={() => { toggleActive(carte.id, carte.active); setOpenActionMenu(null); }}
+                              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 16px', fontSize: '0.82rem', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', color: carte.active ? '#F59E0B' : '#22C55E', textAlign: 'left' }}>
+                              <span>{carte.active ? '⏸' : '▶'}</span> {carte.active ? 'Désactiver' : 'Activer'}
                             </button>
-                            <button
-                              onClick={() => renewClient(carte.id)}
-                              disabled={renewingId === carte.id}
-                              title="Renouveler l'abonnement — remet les extras à 0"
-                              style={{ fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: '#22C55E', borderRadius: 6, padding: '3px 8px' }}
-                            >
-                              {renewingId === carte.id ? '...' : '↺ Renouveler'}
+                            <button onClick={() => { setThemeModal({ id: carte.id, slug: carte.slug }); setTheme({ bg_color: carte.bg_color || EMPTY_THEME.bg_color, primary_color: carte.primary_color || EMPTY_THEME.primary_color, secondary_color: carte.secondary_color || EMPTY_THEME.secondary_color, text_color: carte.text_color || EMPTY_THEME.text_color, font_heading: carte.font_heading || EMPTY_THEME.font_heading, logo_url: carte.logo_url || '', logo_position: carte.logo_position || 'center' }); setOpenActionMenu(null); }}
+                              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 16px', fontSize: '0.82rem', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', textAlign: 'left' }}>
+                              <span>🎨</span> Thème
                             </button>
-                          </>
+                            {['pro','business','business_team'].includes(plan) && (
+                              <>
+                                <div style={{ height: 1, background: 'var(--card-border)', margin: '4px 0' }} />
+                                <button onClick={() => { addExtraMessages(carte.id, carte.extra_chat_messages ?? 0); setOpenActionMenu(null); }}
+                                  disabled={addingMsgs === carte.id}
+                                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 16px', fontSize: '0.82rem', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', color: '#00CFFF', textAlign: 'left' }}>
+                                  <span>✚</span> {addingMsgs === carte.id ? '...' : `+200 msgs (${carte.extra_chat_messages ?? 0})`}
+                                </button>
+                                <button onClick={() => { renewClient(carte.id); setOpenActionMenu(null); }}
+                                  disabled={renewingId === carte.id}
+                                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 16px', fontSize: '0.82rem', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', color: '#22C55E', textAlign: 'left' }}>
+                                  <span>↺</span> {renewingId === carte.id ? '...' : 'Renouveler'}
+                                </button>
+                              </>
+                            )}
+                            <div style={{ height: 1, background: 'var(--card-border)', margin: '4px 0' }} />
+                            <button onClick={() => { setDeleteConfirm(carte); setOpenActionMenu(null); }}
+                              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 16px', fontSize: '0.82rem', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', textAlign: 'left' }}>
+                              <span>🗑</span> Supprimer
+                            </button>
+                          </div>
                         )}
                       </div>
                     </td>

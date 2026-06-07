@@ -93,8 +93,15 @@ export default function AgentsPage() {
   const [created, setCreated]       = useState<string | null>(null);
   const [addingMsgs, setAddingMsgs] = useState<string | null>(null);
   const [renewingId, setRenewingId] = useState<string | null>(null);
+  const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
 
   useEffect(() => { fetchClients(); }, []);
+  useEffect(() => {
+    if (!openActionMenu) return;
+    const close = () => setOpenActionMenu(null);
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [openActionMenu]);
 
   async function addExtraMessages(client_id: string, currentExtra: number) {
     setAddingMsgs(client_id);
@@ -273,30 +280,35 @@ export default function AgentsPage() {
                       {client.message_count_reset_at ? new Date(client.message_count_reset_at).toLocaleDateString('fr-FR') : '—'}
                     </td>
                     <td>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        <a href={`https://agent.digitalsucces.tech/dashboard/${client.client_id}`} target="_blank" rel="noreferrer"
-                          style={{ fontSize: '0.78rem', color: 'var(--primary)', fontWeight: 600 }}>Dashboard ↗</a>
-                        <button onClick={() => toggleActive(client.client_id, !isActive)}
-                          style={{ fontSize: '0.72rem', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0,
-                            color: isActive ? 'var(--accent)' : '#22C55E' }}>
-                          {isActive ? '⏸ Suspendre' : '▶ Réactiver'}
-                        </button>
+                      <div style={{ position: 'relative', display: 'inline-block' }}>
                         <button
-                          onClick={() => addExtraMessages(client.client_id, extra)}
-                          disabled={addingMsgs === client.client_id}
-                          title={`Messages extra actuels : ${extra}`}
-                          style={{ fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', background: 'rgba(0,207,255,0.1)', border: '1px solid rgba(0,207,255,0.3)', color: '#00CFFF', borderRadius: 6, padding: '3px 8px', textAlign: 'left' }}
-                        >
-                          {addingMsgs === client.client_id ? '...' : `+200 msgs (${extra})`}
-                        </button>
-                        <button
-                          onClick={() => renewClient(client.client_id)}
-                          disabled={renewingId === client.client_id}
-                          title="Renouveler — remet extras et compteur à 0"
-                          style={{ fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: '#22C55E', borderRadius: 6, padding: '3px 8px', textAlign: 'left' }}
-                        >
-                          {renewingId === client.client_id ? '...' : '↺ Renouveler'}
-                        </button>
+                          onClick={e => { e.stopPropagation(); setOpenActionMenu(prev => prev === client.client_id ? null : client.client_id); }}
+                          style={{ background: 'var(--dark-3)', border: '1px solid var(--card-border)', borderRadius: 8, width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '1.1rem', letterSpacing: 1 }}
+                          title="Actions"
+                        >⋮</button>
+                        {openActionMenu === client.client_id && (
+                          <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', right: 0, top: 38, background: 'var(--dark-2)', border: '1px solid var(--card-border)', borderRadius: 10, padding: '6px 0', minWidth: 190, zIndex: 400, boxShadow: '0 8px 32px rgba(0,0,0,0.45)' }}>
+                            <a href={`https://agent.digitalsucces.tech/dashboard/${client.client_id}`} target="_blank" rel="noreferrer"
+                              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 16px', fontSize: '0.82rem', color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>
+                              <span>↗</span> Dashboard client
+                            </a>
+                            <button onClick={() => { toggleActive(client.client_id, !isActive); setOpenActionMenu(null); }}
+                              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 16px', fontSize: '0.82rem', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', color: isActive ? '#F59E0B' : '#22C55E', textAlign: 'left' }}>
+                              <span>{isActive ? '⏸' : '▶'}</span> {isActive ? 'Suspendre' : 'Réactiver'}
+                            </button>
+                            <div style={{ height: 1, background: 'var(--card-border)', margin: '4px 0' }} />
+                            <button onClick={() => { addExtraMessages(client.client_id, extra); setOpenActionMenu(null); }}
+                              disabled={addingMsgs === client.client_id}
+                              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 16px', fontSize: '0.82rem', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', color: '#00CFFF', textAlign: 'left' }}>
+                              <span>✚</span> {addingMsgs === client.client_id ? '...' : `+200 msgs (${extra})`}
+                            </button>
+                            <button onClick={() => { renewClient(client.client_id); setOpenActionMenu(null); }}
+                              disabled={renewingId === client.client_id}
+                              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 16px', fontSize: '0.82rem', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', color: '#22C55E', textAlign: 'left' }}>
+                              <span>↺</span> {renewingId === client.client_id ? '...' : 'Renouveler'}
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </td>
                   </tr>
