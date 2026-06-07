@@ -16,7 +16,7 @@ const PLANS = [
   { feature: 'Agent IA (chatbot)', starter: false, pro: '200 msgs/mois', business: '500 msgs/mois', team: '500 msgs/mois' },
   { feature: 'Notifications push visiteurs', starter: false, pro: true, business: true, team: true },
   { feature: 'Collecte de leads', starter: false, pro: true, business: true, team: true },
-  { feature: 'Membres d\'équipe', starter: false, pro: false, business: false, team: 'Illimité' },
+  { feature: 'Membres d\'équipe', starter: false, pro: '2 membres', business: '5 membres', team: '10 membres' },
 ];
 
 function Cell({ val }: { val: boolean | string }) {
@@ -119,7 +119,6 @@ export default function GuidePage() {
               { n: 7, title: 'Vidéos', desc: 'Ajoutez des vidéos YouTube, TikTok, Instagram ou des vidéos uploadées directement.' },
               { n: 8, title: 'Liens personnalisés', desc: 'Boutique en ligne, portfolio externe, application mobile, tout lien utile.' },
               { n: 9, title: 'Bouton RDV', desc: 'Collez le lien de votre calendrier (Calendly, Cal.com...). Un bouton "Prendre RDV" apparaîtra sur votre carte.' },
-              { n: 10, title: 'Thème & logo', desc: 'Personnalisez les couleurs (fond, couleur principale, secondaire) et uploadez le logo de votre entreprise.' },
             ].map(s => (
               <div key={s.n} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', background: 'white', border: '1px solid #E8ECF4', borderRadius: 8, padding: '12px 14px' }}>
                 <div style={{ background: '#D4A843', color: '#1B3464', fontWeight: 800, fontSize: '0.8rem', minWidth: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{s.n}</div>
