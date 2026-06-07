@@ -11,14 +11,29 @@ type Props = {
   profileId: string;
   profileName: string;
   profilePhoto?: string;
+  primaryColor?: string;
+  bgColor?: string;
 };
 
-export default function ChatWidget({ profileId, profileName, profilePhoto }: Props) {
+// Détermine si le texte sur une couleur doit être blanc ou noir
+function textOnColor(hex: string): string {
+  const c = hex.replace('#', '');
+  const r = parseInt(c.slice(0,2), 16);
+  const g = parseInt(c.slice(2,4), 16);
+  const b = parseInt(c.slice(4,6), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 140 ? '#0D0D1A' : '#FFFFFF';
+}
+
+export default function ChatWidget({ profileId, profileName, profilePhoto, primaryColor = '#00CFFF', bgColor = '#0D0D1A' }: Props) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  const primary = primaryColor || '#00CFFF';
+  const bg = bgColor || '#0D0D1A';
+  const textOnPrimary = textOnColor(primary);
 
   useEffect(() => {
     if (open && messages.length === 0) {
@@ -68,7 +83,7 @@ export default function ChatWidget({ profileId, profileName, profilePhoto }: Pro
 
   return (
     <>
-      {/* Floating button */}
+      {/* Bouton flottant */}
       <button
         onClick={() => setOpen(o => !o)}
         aria-label={open ? 'Fermer le chat' : 'Ouvrir le chat'}
@@ -79,63 +94,61 @@ export default function ChatWidget({ profileId, profileName, profilePhoto }: Pro
           width: 52,
           height: 52,
           borderRadius: '50%',
-          background: 'linear-gradient(135deg, #00CFFF, #0090CC)',
+          background: primary,
           border: 'none',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 4px 20px rgba(0,207,255,0.45)',
+          boxShadow: `0 4px 20px ${primary}66`,
           zIndex: 1000,
           transition: 'transform 0.2s',
         }}
       >
         {open ? (
-          <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" width="20" height="20">
+          <svg viewBox="0 0 24 24" fill="none" stroke={textOnPrimary} strokeWidth="2.5" width="20" height="20">
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         ) : (
-          <svg viewBox="0 0 24 24" fill="white" width="22" height="22">
+          <svg viewBox="0 0 24 24" fill={textOnPrimary} width="22" height="22">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
         )}
       </button>
 
-      {/* Chat panel */}
+      {/* Panneau chat */}
       {open && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 86,
-            right: 16,
-            width: 'min(360px, calc(100vw - 32px))',
-            height: 420,
-            background: '#13131F',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 20,
-            boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
-            display: 'flex',
-            flexDirection: 'column',
-            zIndex: 999,
-            overflow: 'hidden',
-            fontFamily: 'Inter, sans-serif',
-          }}
-        >
-          {/* Header */}
+        <div style={{
+          position: 'fixed',
+          bottom: 86,
+          right: 16,
+          width: 'min(360px, calc(100vw - 32px))',
+          height: 420,
+          background: bg,
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 20,
+          boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
+          display: 'flex',
+          flexDirection: 'column',
+          zIndex: 999,
+          overflow: 'hidden',
+          fontFamily: 'Inter, sans-serif',
+        }}>
+          {/* En-tête */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: 10,
             padding: '12px 16px',
             borderBottom: '1px solid rgba(255,255,255,0.07)',
-            background: 'rgba(0,207,255,0.06)',
+            background: `${primary}12`,
           }}>
             {profilePhoto ? (
               <img src={profilePhoto} alt={profileName} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }} />
             ) : (
-              <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#00CFFF,#0090CC)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
+              <div style={{ width: 34, height: 34, borderRadius: '50%', background: primary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg viewBox="0 0 24 24" fill={textOnPrimary} width="18" height="18">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>
@@ -143,7 +156,7 @@ export default function ChatWidget({ profileId, profileName, profilePhoto }: Pro
             )}
             <div>
               <p style={{ color: '#fff', fontSize: '0.82rem', fontWeight: 600, margin: 0 }}>{profileName}</p>
-              <p style={{ color: '#00CFFF', fontSize: '0.68rem', margin: 0 }}>Assistant IA · En ligne</p>
+              <p style={{ color: primary, fontSize: '0.68rem', margin: 0 }}>Assistant IA · En ligne</p>
             </div>
           </div>
 
@@ -155,8 +168,8 @@ export default function ChatWidget({ profileId, profileName, profilePhoto }: Pro
                   maxWidth: '80%',
                   padding: '8px 12px',
                   borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                  background: msg.role === 'user' ? 'linear-gradient(135deg,#00CFFF,#0090CC)' : 'rgba(255,255,255,0.07)',
-                  color: msg.role === 'user' ? '#0D0D1A' : '#E5E7EB',
+                  background: msg.role === 'user' ? primary : 'rgba(255,255,255,0.07)',
+                  color: msg.role === 'user' ? textOnPrimary : '#E5E7EB',
                   fontSize: '0.8rem',
                   lineHeight: 1.5,
                   fontWeight: msg.role === 'user' ? 600 : 400,
@@ -170,7 +183,7 @@ export default function ChatWidget({ profileId, profileName, profilePhoto }: Pro
                 <div style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '16px 16px 16px 4px', padding: '8px 14px', display: 'flex', gap: 4, alignItems: 'center' }}>
                   {[0, 1, 2].map(i => (
                     <span key={i} style={{
-                      width: 6, height: 6, borderRadius: '50%', background: '#00CFFF',
+                      width: 6, height: 6, borderRadius: '50%', background: primary,
                       animation: 'chatDot 1.2s ease-in-out infinite',
                       animationDelay: `${i * 0.2}s`,
                       display: 'inline-block',
@@ -182,13 +195,13 @@ export default function ChatWidget({ profileId, profileName, profilePhoto }: Pro
             <div ref={bottomRef} />
           </div>
 
-          {/* Input */}
+          {/* Saisie */}
           <div style={{
             display: 'flex',
             gap: 8,
             padding: '10px 12px',
             borderTop: '1px solid rgba(255,255,255,0.07)',
-            background: '#0D0D1A',
+            background: `${bg}CC`,
           }}>
             <input
               value={input}
@@ -215,7 +228,7 @@ export default function ChatWidget({ profileId, profileName, profilePhoto }: Pro
                 width: 36,
                 height: 36,
                 borderRadius: '50%',
-                background: input.trim() && !loading ? 'linear-gradient(135deg,#00CFFF,#0090CC)' : 'rgba(255,255,255,0.1)',
+                background: input.trim() && !loading ? primary : 'rgba(255,255,255,0.1)',
                 border: 'none',
                 cursor: input.trim() && !loading ? 'pointer' : 'default',
                 display: 'flex',
@@ -225,7 +238,7 @@ export default function ChatWidget({ profileId, profileName, profilePhoto }: Pro
                 transition: 'background 0.2s',
               }}
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke={input.trim() && !loading ? '#0D0D1A' : '#555'} strokeWidth="2.5" width="16" height="16">
+              <svg viewBox="0 0 24 24" fill="none" stroke={input.trim() && !loading ? textOnPrimary : '#555'} strokeWidth="2.5" width="16" height="16">
                 <line x1="22" y1="2" x2="11" y2="13" />
                 <polygon points="22 2 15 22 11 13 2 9 22 2" />
               </svg>

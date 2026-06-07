@@ -662,7 +662,7 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
 
       {/* Agent IA — Pro+ uniquement */}
       {['pro', 'business', 'business_team'].includes(profile.plan?.toLowerCase() ?? '') && (
-        <ChatWidget profileId={profile.id} profileName={profile.name} profilePhoto={profile.photo || undefined} />
+        <ChatWidget profileId={profile.id} profileName={profile.name} profilePhoto={profile.photo || undefined} primaryColor={primaryColor} bgColor={bgColor} />
       )}
 
       {/* Lightbox : portfolio plein écran */}
