@@ -310,14 +310,16 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
             </div>
           </div>
 
-          {/* Logo — en dehors du hero pour ne pas être clippé */}
+          {/* Logo — badge avatar bas droite */}
           {profile.logo_url && (
             <div className={styles.heroLogoWrap}>
-              <img
-                src={profile.logo_url}
-                alt={profile.company || profile.name}
-                className={styles.heroLogo}
-              />
+              <div className={styles.heroLogoInner}>
+                <img
+                  src={profile.logo_url}
+                  alt={profile.company || profile.name}
+                  className={styles.heroLogo}
+                />
+              </div>
             </div>
           )}
         </div>
