@@ -249,6 +249,16 @@ export async function DELETE(req: NextRequest) {
     .from('carte_profiles').select('id, user_id').eq('id', id).eq('team_owner_id', user.id).single();
   if (!member) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
 
+  // Nettoyer les tables liées avant de supprimer le profil
+  await supabaseAdmin.from('carte_chat_logs').delete().eq('profile_id', id);
+  await supabaseAdmin.from('carte_documents').delete().eq('profile_id', id);
+  await supabaseAdmin.from('carte_portfolio').delete().eq('profile_id', id);
+  await supabaseAdmin.from('carte_links').delete().eq('profile_id', id);
+  await supabaseAdmin.from('carte_videos').delete().eq('profile_id', id);
+  await supabaseAdmin.from('carte_visits').delete().eq('profile_id', id);
+  await supabaseAdmin.from('carte_leads').delete().eq('profile_id', id);
+  await supabaseAdmin.from('carte_push_subscriptions').delete().eq('profile_id', id);
+
   // Supprimer le profil
   const { error } = await supabaseAdmin.from('carte_profiles').delete().eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
