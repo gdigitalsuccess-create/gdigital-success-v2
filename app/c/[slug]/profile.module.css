@@ -33,12 +33,14 @@
 /* Logo bar */
 .logoBar {
   display: flex;
+  width: 100%;
   align-items: center;
   justify-content: center;
   margin-bottom: 32px;
 }
 .logo {
-  height: 32px;
+  height: 40px;
+  max-width: 160px;
   object-fit: contain;
 }
 

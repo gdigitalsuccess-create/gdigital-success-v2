@@ -310,11 +310,13 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
               <img src={profile.cover} alt="cover" className={styles.coverImg} />
             ) : (
               <div className={styles.coverDefault}>
-                <img
-                src={profile.logo_url || '/assets/logo.png'}
-                alt={profile.logo_url ? (profile.company || profile.name) : 'G+Digital'}
-                className={styles.coverDefaultLogo}
-              />
+                {!profile.logo_url && (
+                  <img
+                    src='/assets/logo.png'
+                    alt='G+Digital'
+                    className={styles.coverDefaultLogo}
+                  />
+                )}
               </div>
             )}
             {profile.photo && (
