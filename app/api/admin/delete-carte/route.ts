@@ -44,10 +44,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: profileErr.message }, { status: 400 });
   }
 
-  // 4. Supprimer le compte Auth si user_id connu
+  // 4. Vérifier que la suppression a bien eu lieu
+  const { data: check } = await supabaseAdmin
+    .from('carte_profiles')
+    .select('id')
+    .eq('id', profile_id)
+    .single();
+
+  if (check) {
+    return NextResponse.json({ ok: false, stillExists: true, error: 'Ligne toujours présente après DELETE (RLS ?)' }, { status: 500 });
+  }
+
+  // 5. Supprimer le compte Auth si user_id connu
   if (user_id) {
     await supabaseAdmin.auth.admin.deleteUser(user_id);
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, stillExists: false });
 }

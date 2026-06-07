@@ -245,20 +245,33 @@ export default function CartesPage() {
 
   async function deleteClient() {
     if (!deleteConfirm) return;
+    const targetId   = deleteConfirm.id;
+    const targetName = deleteConfirm.name;
     setDeleting(true);
-    const res = await fetch('/api/admin/delete-carte', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        profile_id: deleteConfirm.id,
-        slug:       deleteConfirm.slug,
-        user_id:    deleteConfirm.user_id,
-      }),
-    });
+    let res: Response;
+    try {
+      res = await fetch('/api/admin/delete-carte', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profile_id: targetId,
+          slug:       deleteConfirm.slug,
+          user_id:    deleteConfirm.user_id,
+        }),
+      });
+    } catch (e) {
+      setDeleting(false);
+      alert('Erreur réseau : ' + e);
+      return;
+    }
     setDeleting(false);
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      alert('Erreur suppression : ' + (data.error || res.status));
+      alert('Erreur suppression (' + res.status + ') : ' + (data.error || 'inconnu'));
+      return;
+    }
+    if (data.stillExists) {
+      alert('⚠️ ' + targetName + ' n\'a pas été supprimé (Supabase). Vérifiez les RLS policies.');
       return;
     }
     setDeleteConfirm(null);
