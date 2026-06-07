@@ -275,10 +275,6 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
   }, [fontHeading]);
 
   const heroHasMedia = !!(profile.photo || profile.cover || profile.coverVideo);
-  const logoPositionClass =
-    profile.logo_position === 'left' ? styles.heroLogoLeft :
-    profile.logo_position === 'right' ? styles.heroLogoRight :
-    styles.heroLogoCenter;
 
   return (
     <main className={styles.page} style={themeVars}>
@@ -303,13 +299,15 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
           {/* Dégradé sombre bas */}
           <div className={styles.heroGradient} />
 
-          {/* Logo */}
+          {/* Logo — fixe bas droite, à cheval sur le content */}
           {profile.logo_url && (
-            <img
-              src={profile.logo_url}
-              alt={profile.company || profile.name}
-              className={`${styles.heroLogo} ${logoPositionClass}`}
-            />
+            <div className={styles.heroLogoWrap}>
+              <img
+                src={profile.logo_url}
+                alt={profile.company || profile.name}
+                className={styles.heroLogo}
+              />
+            </div>
           )}
 
           {/* Nom + Titre */}
