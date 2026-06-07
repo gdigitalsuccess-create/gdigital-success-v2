@@ -156,7 +156,7 @@ export default function ChatWidget({ profileId, profileName, profilePhoto, prima
             )}
             <div>
               <p style={{ color: '#fff', fontSize: '0.82rem', fontWeight: 600, margin: 0 }}>{profileName}</p>
-              <p style={{ color: primary, fontSize: '0.68rem', margin: 0 }}>Assistant IA · En ligne</p>
+              <p style={{ color: primary, fontSize: '0.68rem', margin: 0 }}>En ligne</p>
             </div>
           </div>
 
