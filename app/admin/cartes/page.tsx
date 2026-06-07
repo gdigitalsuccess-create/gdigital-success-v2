@@ -247,6 +247,7 @@ export default function CartesPage() {
     if (!deleteConfirm) return;
     const targetId   = deleteConfirm.id;
     const targetName = deleteConfirm.name;
+    console.log('[delete] Lancement suppression:', targetName, targetId);
     setDeleting(true);
     let res: Response;
     try {
@@ -813,7 +814,6 @@ export default function CartesPage() {
               {drawerMembers.length === 0 ? (
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '32px 0' }}>Aucun membre pour ce compte.</p>
               ) : drawerMembers.map(membre => {
-                const plan = (membre.plan || 'starter').toLowerCase();
                 return (
                   <div key={membre.id} style={{ background: 'var(--dark-3)', border: '1px solid var(--card-border)', borderRadius: 12, padding: '16px 18px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>

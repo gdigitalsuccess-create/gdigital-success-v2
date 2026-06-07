@@ -8,6 +8,10 @@ const supabaseAdmin = createClient(
 );
 
 export async function POST(req: NextRequest) {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return NextResponse.json({ error: 'SUPABASE_SERVICE_ROLE_KEY manquant dans Vercel' }, { status: 500 });
+  }
+
   const { profile_id, slug, user_id } = await req.json();
 
   if (!profile_id || !slug) {
