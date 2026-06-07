@@ -237,7 +237,8 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
   const hasPortfolio = !!profile.portfolio?.length;
   const hasVideos = !!profile.videos?.length;
   const hasLinks = !!profile.links?.length;
-  const hasSecondary = hasDocuments || hasPortfolio || hasVideos || hasLinks;
+  const hasSocials = activeSocials.length > 0;
+  const hasSecondary = hasSocials || hasDocuments || hasPortfolio || hasVideos || hasLinks;
 
   // ── Thème dynamique ──
   const bgColor        = profile.bg_color        || '#0D0D1A';
@@ -338,26 +339,6 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
             </a>
           </div>
 
-          {/* Socials row */}
-          {activeSocials.length > 0 && (
-            <>
-              <p className={styles.sectionGroupTitle}>Réseaux</p>
-              <div className={styles.socialsRow}>
-                {activeSocials.map(({ key, bg, svg }) => (
-                  <a
-                    key={key}
-                    href={getDeepLink(key, profile.socials[key]!)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.socialIcon}
-                    style={{ background: bg }}
-                    dangerouslySetInnerHTML={{ __html: svg }}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-
           {/* Contact icon buttons row */}
           {(profile.phone || profile.email || profile.website || profile.location) && (
             <p className={styles.sectionGroupTitle}>Contacter</p>
@@ -449,6 +430,19 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
             {/* Secondaire : accordéon outline pills */}
             {hasSecondary && (
               <div className={styles.secondaryGrid}>
+                {hasSocials && (
+                  <button
+                    onClick={() => toggleSection('socials')}
+                    className={`${styles.pillSecondary} ${openSection === 'socials' ? styles.pillSecondaryActive : ''}`}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15">
+                      <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                    </svg>
+                    Réseaux sociaux
+                    {openSection === 'socials' ? <ChevronUp /> : <ChevronDown />}
+                  </button>
+                )}
                 {hasDocuments && (
                   <button
                     onClick={() => toggleSection('documents')}
@@ -517,6 +511,25 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
             {/* Tertiaire : push notifications */}
             <PushSubscribeButton profileId={profile.id} profileName={profile.name} />
           </div>
+
+          {/* Accordéon : Réseaux sociaux */}
+          {openSection === 'socials' && activeSocials.length > 0 && (
+            <div className={styles.accordionSection}>
+              <div className={styles.socialsRow}>
+                {activeSocials.map(({ key, bg, svg }) => (
+                  <a
+                    key={key}
+                    href={getDeepLink(key, profile.socials[key]!)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.socialIcon}
+                    style={{ background: bg }}
+                    dangerouslySetInnerHTML={{ __html: svg }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Accordéon : Documents */}
           {openSection === 'documents' && profile.documents && (
