@@ -1,5 +1,14 @@
-const CACHE = 'gdigital-v2';
+const CACHE = 'gdigital-v3';
 const STATIC = ['/assets/logo.png', '/assets/favicon.png', '/assets/icon-maskable.png'];
+
+// Domaines autorisés pour le cache cross-origin
+function isCacheableExternal(url) {
+  return (
+    url.hostname.includes('supabase.co') ||         // images, docs, vidéos
+    url.hostname === 'fonts.googleapis.com' ||       // polices CSS
+    url.hostname === 'fonts.gstatic.com'             // fichiers polices
+  );
+}
 
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -21,17 +30,17 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
   if (event.request.method !== 'GET') return;
-  if (url.origin !== self.location.origin) return;
 
-  // Ignorer les routes API et de tracking (toujours réseau)
-  if (url.pathname.startsWith('/api/')) return;
+  // Ignorer les requêtes API (toujours réseau)
+  if (url.origin === self.location.origin && url.pathname.startsWith('/api/')) return;
+
+  // Ignorer les domaines non autorisés (analytics, etc.)
+  if (url.origin !== self.location.origin && !isCacheableExternal(url)) return;
 
   // Pages profil /c/[slug] : Network First → cache pour hors-ligne
-  if (url.pathname.startsWith('/c/')) {
-    // Ignorer les requêtes RSC internes de Next.js (navigation client-side)
+  if (url.origin === self.location.origin && url.pathname.startsWith('/c/')) {
     const isRSC = event.request.headers.get('RSC') === '1'
       || event.request.headers.get('Next-Router-Prefetch') === '1';
-
     if (isRSC) return;
 
     event.respondWith(
@@ -50,8 +59,10 @@ self.addEventListener('fetch', event => {
 
   // Assets statiques Next.js et publics : Cache First
   if (
-    url.pathname.startsWith('/assets/') ||
-    url.pathname.startsWith('/_next/static/')
+    url.origin === self.location.origin && (
+      url.pathname.startsWith('/assets/') ||
+      url.pathname.startsWith('/_next/static/')
+    )
   ) {
     event.respondWith(
       caches.match(event.request).then(cached => {
@@ -62,7 +73,32 @@ self.addEventListener('fetch', event => {
             caches.open(CACHE).then(cache => cache.put(event.request, clone));
           }
           return response;
-        }).catch(() => cached || new Response('', { status: 503 }));
+        }).catch(() => new Response('', { status: 503 }));
+      })
+    );
+    return;
+  }
+
+  // Ressources Supabase Storage + Google Fonts : Cache First
+  if (isCacheableExternal(url)) {
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        if (cached) return cached;
+
+        return fetch(event.request).then(response => {
+          if (!response.ok) return response;
+
+          // Ne pas cacher les vidéos trop lourdes (>50MB)
+          const contentLength = response.headers.get('content-length');
+          const isVideo = url.pathname.match(/\.(mp4|webm|mov|avi)$/i);
+          if (isVideo && contentLength && parseInt(contentLength) > 50 * 1024 * 1024) {
+            return response;
+          }
+
+          const clone = response.clone();
+          caches.open(CACHE).then(cache => cache.put(event.request, clone));
+          return response;
+        }).catch(() => new Response('', { status: 503 }));
       })
     );
     return;
