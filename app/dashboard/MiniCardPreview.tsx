@@ -101,7 +101,6 @@ export default function MiniCardPreview({ form, profile, theme = {}, showLink = 
   const bg        = theme.bg_color        || '#0D0D1A';
   const primary   = theme.primary_color   || '#00CFFF';
   const secondary = theme.secondary_color || '#D4A843';
-  const textColor = theme.text_color      || '#FFFFFF';
   const font      = theme.font_heading    || 'Inter';
   const card      = getCardColor(bg);
   const textOnPrimary   = getContrastText(primary);
@@ -123,98 +122,93 @@ export default function MiniCardPreview({ form, profile, theme = {}, showLink = 
   const cardUrl = profile.slug ? `/c/${profile.slug}` : '#';
   const fontFamily = `'${font}', sans-serif`;
 
-  return (
-    <div style={{ fontFamily: fontFamily }}>
-      <div style={{ background: card, borderRadius: 20, border: `1px solid rgba(128,128,128,0.15)`, overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}>
+  const hasSocials = SOCIAL_ICONS.some(s => !!form[s.formKey as keyof FormData]);
+  const hasContact = CONTACT_BTNS.some(b => !!form[b.formKey as keyof FormData]);
 
-        {/* Cover */}
-        <div style={{ position: 'relative', height: 90 }}>
+  return (
+    <div style={{ fontFamily }}>
+      {/* Wrapper global */}
+      <div style={{ background: bg, borderRadius: 20, overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}>
+
+        {/* ── HERO ── */}
+        <div style={{ position: 'relative', height: 140 }}>
+          {/* Média de fond */}
           {profile.cover_video_url ? (
             <video src={profile.cover_video_url} autoPlay muted loop playsInline
-              style={{ width: '100%', height: 90, objectFit: 'cover', display: 'block' }} />
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           ) : profile.cover_url ? (
-            <img src={profile.cover_url} alt="cover" style={{ width: '100%', height: 90, objectFit: 'cover', display: 'block' }} />
+            <img src={profile.cover_url} alt="cover"
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
+          ) : profile.photo_url ? (
+            <img src={profile.photo_url} alt={form.name}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
           ) : (
-            <div style={{ width: '100%', height: 90, background: `linear-gradient(135deg, ${bg}, ${card})` }} />
+            <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(150deg, ${primary}, ${secondary})` }} />
           )}
 
-          {/* Avatar */}
-          <div style={{ position: 'absolute', bottom: -28, left: '50%', transform: 'translateX(-50%)' }}>
-            <div style={{ padding: 3, borderRadius: '50%', background: primary, boxShadow: `0 4px 12px ${primary}55` }}>
-              <div style={{ padding: 2, borderRadius: '50%', background: card }}>
-                {profile.photo_url ? (
-                  <img src={profile.photo_url} alt={form.name}
-                    style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', display: 'block' }} />
-                ) : (
-                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.5" width="26" height="26">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-                    </svg>
-                  </div>
-                )}
-              </div>
+          {/* Dégradé overlay */}
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0.7) 100%)' }} />
+
+          {/* Nom + titre en overlay */}
+          <div style={{ position: 'absolute', bottom: 10, left: 12, right: 12, zIndex: 2 }}>
+            <div style={{ color: '#fff', fontWeight: 800, fontSize: '0.88rem', lineHeight: 1.2, textShadow: '0 2px 6px rgba(0,0,0,0.5)', fontFamily }}>
+              {form.name || <span style={{ opacity: 0.5 }}>Votre nom</span>}
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.65rem', marginTop: 2, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
+              {form.title || ''}{form.company && <span style={{ color: primary, filter: 'brightness(1.4)' }}> · {form.company}</span>}
             </div>
           </div>
-        </div>
 
-        {/* Infos */}
-        <div style={{ paddingTop: 38, paddingBottom: 12, paddingLeft: 14, paddingRight: 14, textAlign: 'center' }}>
+          {/* Logo badge bas droite */}
           {profile.logo_url && (
-            <div style={{ marginBottom: 8 }}>
-              <img src={profile.logo_url} alt="logo" style={{ maxHeight: 32, maxWidth: 100, objectFit: 'contain', display: 'inline-block' }} />
+            <div style={{ position: 'absolute', bottom: -20, right: 12, zIndex: 10, padding: 3, borderRadius: '50%', background: bg, boxShadow: '0 4px 12px rgba(0,0,0,0.35)' }}>
+              <div style={{ padding: 3, borderRadius: '50%', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src={profile.logo_url} alt="logo" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'contain', display: 'block' }} />
+              </div>
             </div>
           )}
-          <h3 style={{ color: textColor, fontWeight: 800, fontSize: '0.92rem', margin: '0 0 2px', fontFamily, lineHeight: 1.2 }}>
-            {form.name || <span style={{ color: '#4B5563' }}>Votre nom</span>}
-          </h3>
-          <p style={{ color: '#9CA3AF', fontSize: '0.7rem', margin: '0 0 10px', lineHeight: 1.4 }}>
-            {form.title || <span style={{ color: '#374151' }}>Votre poste</span>}
-            {form.company && <span style={{ color: primary }}> · {form.company}</span>}
-          </p>
+        </div>
+
+        {/* ── CONTENT ── */}
+        <div style={{ background: card, borderRadius: '20px 20px 0 0', marginTop: -12, position: 'relative', zIndex: 1, padding: `${profile.logo_url ? 28 : 14}px 14px 14px` }}>
 
           {/* Bouton Enregistrer */}
-          <div style={{ width: '100%', background: primary, color: textOnPrimary, fontWeight: 800, borderRadius: 9999, padding: '7px 0', fontSize: '0.68rem', marginBottom: 10 }}>
+          <div style={{ width: '100%', background: primary, color: textOnPrimary, fontWeight: 800, borderRadius: 9999, padding: '7px 0', fontSize: '0.68rem', marginBottom: 10, textAlign: 'center' }}>
             Enregistrer le contact
           </div>
 
-          {/* Réseaux sociaux — uniquement ceux fournis */}
-          {SOCIAL_ICONS.some(s => !!form[s.formKey as keyof FormData]) && (
+          {/* Boutons contact */}
+          {hasContact && (
             <>
-              <div style={{ fontSize: '0.58rem', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Réseaux</div>
+              <div style={{ fontSize: '0.55rem', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 5, textAlign: 'center' }}>Contacter</div>
               <div style={{ display: 'flex', justifyContent: 'center', gap: 5, marginBottom: 10, flexWrap: 'wrap' }}>
-                {SOCIAL_ICONS.filter(s => !!form[s.formKey as keyof FormData]).map(s => (
-                  <div key={s.label} style={{ width: 28, height: 28, borderRadius: '50%', background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.85 }}
-                    dangerouslySetInnerHTML={{ __html: s.svg }} />
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* Boutons contact — uniquement ceux fournis */}
-          {CONTACT_BTNS.some(b => !!form[b.formKey as keyof FormData]) && (
-            <>
-              <div style={{ fontSize: '0.58rem', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Contacter</div>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 5, marginBottom: 12, flexWrap: 'wrap' }}>
                 {CONTACT_BTNS.filter(b => !!form[b.formKey as keyof FormData]).map(b => (
-                  <div key={b.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: b.label === 'Appeler' ? primary : b.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  <div key={b.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                    <div style={{ width: 30, height: 30, borderRadius: '50%', background: b.label === 'Appeler' ? primary : b.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       dangerouslySetInnerHTML={{ __html: b.svg }} />
-                    <span style={{ fontSize: '0.52rem', color: '#6B7280' }}>{b.label}</span>
+                    <span style={{ fontSize: '0.48rem', color: '#6B7280' }}>{b.label}</span>
                   </div>
                 ))}
               </div>
             </>
           )}
 
-          {/* Bouton RDV — uniquement si rdv_url fourni */}
-          {form.rdv_url && (
-            <div style={{ width: '100%', background: secondary, color: textOnSecondary, fontWeight: 700, borderRadius: 9999, padding: '7px 0', fontSize: '0.65rem', marginBottom: 10 }}>
-              Prendre RDV — Appel gratuit 30 min
-            </div>
-          )}
+          {/* Pills secondaires */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 8 }}>
+            {hasSocials && (
+              <div style={{ border: `1px solid ${primary}40`, borderRadius: 9999, padding: '5px 8px', fontSize: '0.6rem', color: '#6B7280', textAlign: 'center' }}>
+                🔗 Réseaux sociaux
+              </div>
+            )}
+            {form.rdv_url && (
+              <div style={{ background: secondary, color: textOnSecondary, borderRadius: 9999, padding: '5px 8px', fontSize: '0.6rem', fontWeight: 700, textAlign: 'center' }}>
+                📅 Prendre RDV
+              </div>
+            )}
+          </div>
 
           {/* URL */}
-          <p style={{ fontSize: '0.58rem', color: primary, margin: 0, fontWeight: 600 }}>
+          <p style={{ fontSize: '0.55rem', color: primary, margin: 0, fontWeight: 600, textAlign: 'center' }}>
             digitalsucces.tech/c/{profile.slug || 'votre-slug'}
           </p>
         </div>
