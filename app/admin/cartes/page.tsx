@@ -14,6 +14,13 @@ type CarteProfile = {
   created_at: string;
   extra_chat_messages: number;
   user_id: string | null;
+  bg_color: string | null;
+  primary_color: string | null;
+  secondary_color: string | null;
+  text_color: string | null;
+  font_heading: string | null;
+  logo_url: string | null;
+  logo_position: string | null;
 };
 
 const PLANS = ['starter', 'pro', 'business', 'business_team'];
@@ -75,7 +82,7 @@ export default function CartesPage() {
     setLoading(true);
     const { data } = await supabase
       .from('carte_profiles')
-      .select('id, slug, name, title, company, plan, active, created_at, extra_chat_messages, user_id')
+      .select('id, slug, name, title, company, plan, active, created_at, extra_chat_messages, user_id, bg_color, primary_color, secondary_color, text_color, font_heading, logo_url, logo_position')
       .order('created_at', { ascending: false });
     const profiles = data || [];
     setCartes(profiles);
@@ -355,7 +362,7 @@ export default function CartesPage() {
                           style={{ fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none', color: carte.active ? 'var(--accent)' : 'var(--secondary)', padding: 0 }}>
                           {carte.active ? 'Désactiver' : 'Activer'}
                         </button>
-                        <button onClick={() => { setThemeModal({ id: carte.id, slug: carte.slug }); setTheme(EMPTY_THEME); }}
+                        <button onClick={() => { setThemeModal({ id: carte.id, slug: carte.slug }); setTheme({ bg_color: carte.bg_color || EMPTY_THEME.bg_color, primary_color: carte.primary_color || EMPTY_THEME.primary_color, secondary_color: carte.secondary_color || EMPTY_THEME.secondary_color, text_color: carte.text_color || EMPTY_THEME.text_color, font_heading: carte.font_heading || EMPTY_THEME.font_heading, logo_url: carte.logo_url || '', logo_position: carte.logo_position || 'center' }); }}
                           style={{ fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none', color: 'var(--text-muted)', padding: 0 }}>
                           🎨 Thème
                         </button>
