@@ -3,15 +3,14 @@ import { usePathname } from 'next/navigation';
 import Script from 'next/script';
 import config from '@/client.config';
 
+// Pages publiques du site G+Digital où le chatbot doit apparaître
+const SITE_PAGES = ['/', '/agent-ia', '/carte-nfc', '/mentions-legales', '/merci'];
+
 export default function ChatbaseEmbed() {
   const pathname = usePathname();
 
-  // Ne pas charger sur les cartes NFC ni les pages admin/dashboard client
-  if (
-    pathname.startsWith('/c/') ||
-    pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/admin')
-  ) return null;
+  // Uniquement sur les pages marketing du site
+  if (!SITE_PAGES.includes(pathname)) return null;
 
   return (
     <Script id="chatbase-embed" strategy="afterInteractive">{`
