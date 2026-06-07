@@ -227,6 +227,13 @@ function ChevronUp() {
 export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props) {
   const [openSection, setOpenSection] = useState<string | null>(null);
   const [showLeadModal, setShowLeadModal] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const portfolioItems = profile.portfolio ?? [];
+  const openLightbox = (index: number) => setLightboxIndex(index);
+  const closeLightbox = () => setLightboxIndex(null);
+  const lightboxPrev = () => setLightboxIndex(i => i !== null ? (i - 1 + portfolioItems.length) % portfolioItems.length : null);
+  const lightboxNext = () => setLightboxIndex(i => i !== null ? (i + 1) % portfolioItems.length : null);
 
   const toggleSection = (section: string) => {
     setOpenSection(prev => (prev === section ? null : section));
@@ -563,8 +570,8 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
             <div className={styles.accordionSection}>
               <p className={styles.accordionLabel}>{profile.portfolioTitle}</p>
               <div className={styles.portfolioGrid}>
-                {profile.portfolio.map((item) => (
-                  <div key={item.id} className={styles.portfolioItem}>
+                {profile.portfolio.map((item, idx) => (
+                  <div key={item.id} className={styles.portfolioItem} onClick={() => openLightbox(idx)}>
                     <img
                       src={item.photo_url}
                       alt={item.caption ?? 'Réalisation'}
@@ -656,6 +663,40 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
       {/* Agent IA — Pro+ uniquement */}
       {['pro', 'business', 'business_team'].includes(profile.plan?.toLowerCase() ?? '') && (
         <ChatWidget profileId={profile.id} profileName={profile.name} profilePhoto={profile.photo || undefined} />
+      )}
+
+      {/* Lightbox : portfolio plein écran */}
+      {lightboxIndex !== null && portfolioItems[lightboxIndex] && (
+        <div className={styles.lightboxOverlay} onClick={closeLightbox}>
+          <button className={styles.lightboxClose} onClick={closeLightbox} aria-label="Fermer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="20" height="20">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+          {portfolioItems.length > 1 && (
+            <button className={styles.lightboxPrev} onClick={e => { e.stopPropagation(); lightboxPrev(); }} aria-label="Précédent">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="22" height="22"><polyline points="15 18 9 12 15 6" /></svg>
+            </button>
+          )}
+          <div className={styles.lightboxContent} onClick={e => e.stopPropagation()}>
+            <img
+              src={portfolioItems[lightboxIndex].photo_url}
+              alt={portfolioItems[lightboxIndex].caption ?? 'Réalisation'}
+              className={styles.lightboxImg}
+            />
+            {portfolioItems[lightboxIndex].caption && (
+              <p className={styles.lightboxCaption}>{portfolioItems[lightboxIndex].caption}</p>
+            )}
+            {portfolioItems.length > 1 && (
+              <p className={styles.lightboxCounter}>{lightboxIndex + 1} / {portfolioItems.length}</p>
+            )}
+          </div>
+          {portfolioItems.length > 1 && (
+            <button className={styles.lightboxNext} onClick={e => { e.stopPropagation(); lightboxNext(); }} aria-label="Suivant">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="22" height="22"><polyline points="9 18 15 12 9 6" /></svg>
+            </button>
+          )}
+        </div>
       )}
 
       {/* Modal : Laisser mes coordonnées */}
