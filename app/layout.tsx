@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Script from 'next/script';
 import { LangProvider } from '@/lib/LangContext';
 import config from '@/client.config';
+import ChatbaseEmbed from './ChatbaseEmbed';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -43,17 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </LangProvider>
         <Script src="https://assets.calendly.com/assets/external/widget.js" strategy="lazyOnload" />
-        <Script id="chatbase-embed" strategy="afterInteractive">{`
-          window.embeddedChatbotConfig = { chatbotId: "${config.chatbaseId}", domain: "www.chatbase.co" };
-          (function() {
-            var s = document.createElement("script");
-            s.src = "https://www.chatbase.co/embed.min.js";
-            s.setAttribute("chatbotId", "${config.chatbaseId}");
-            s.setAttribute("domain", "www.chatbase.co");
-            s.defer = true;
-            document.body.appendChild(s);
-          })();
-        `}</Script>
+        <ChatbaseEmbed />
       </body>
     </html>
   );
