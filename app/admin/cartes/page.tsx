@@ -14,6 +14,7 @@ type CarteProfile = {
   created_at: string;
   extra_chat_messages: number;
   user_id: string | null;
+  team_owner_id: string | null;
   bg_color: string | null;
   primary_color: string | null;
   secondary_color: string | null;
@@ -58,7 +59,7 @@ const EMPTY_THEME = { bg_color: '#0D0D1A', primary_color: '#00CFFF', secondary_c
 const FONTS = ['Inter','Poppins','Montserrat','Playfair Display SC','Playfair Display','Cormorant Garamond','Raleway','Lato','Roboto','Lora','EB Garamond','Belleza'];
 
 export default function CartesPage() {
-  const [cartes, setCartes]     = useState<CarteProfile[]>([]);
+  const [allProfiles, setAllProfiles] = useState<CarteProfile[]>([]);
   const [loading, setLoading]   = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm]         = useState(EMPTY_FORM);
@@ -75,6 +76,14 @@ export default function CartesPage() {
   const [fullscreenPreview, setFullscreenPreview] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<CarteProfile | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [membersDrawer, setMembersDrawer] = useState<CarteProfile | null>(null);
+
+  // Comptes mères uniquement dans le tableau
+  const cartes = allProfiles.filter(p => !p.team_owner_id);
+  // Membres du drawer
+  const drawerMembers = membersDrawer
+    ? allProfiles.filter(p => p.team_owner_id === membersDrawer.user_id)
+    : [];
 
   useEffect(() => { fetchCartes(); }, []);
 
@@ -82,10 +91,10 @@ export default function CartesPage() {
     setLoading(true);
     const { data } = await supabase
       .from('carte_profiles')
-      .select('id, slug, name, title, company, plan, active, created_at, extra_chat_messages, user_id, bg_color, primary_color, secondary_color, text_color, font_heading, logo_url, logo_position')
+      .select('id, slug, name, title, company, plan, active, created_at, extra_chat_messages, user_id, team_owner_id, bg_color, primary_color, secondary_color, text_color, font_heading, logo_url, logo_position')
       .order('created_at', { ascending: false });
     const profiles = data || [];
-    setCartes(profiles);
+    setAllProfiles(profiles);
 
     if (profiles.length > 0) {
       // Fetch all logs since the earliest billing cycle start among all profiles
@@ -118,7 +127,7 @@ export default function CartesPage() {
 
   async function toggleActive(id: string, current: boolean) {
     await supabase.from('carte_profiles').update({ active: !current }).eq('id', id);
-    setCartes(prev => prev.map(c => c.id === id ? { ...c, active: !current } : c));
+    setAllProfiles(prev => prev.map(c => c.id === id ? { ...c, active: !current } : c));
   }
 
   async function changePlan(id: string, newPlan: string) {
@@ -127,7 +136,7 @@ export default function CartesPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ profile_id: id, new_plan: newPlan }),
     });
-    setCartes(prev => prev.map(c => c.id === id ? { ...c, plan: newPlan } : c));
+    setAllProfiles(prev => prev.map(c => c.id === id ? { ...c, plan: newPlan } : c));
     await fetch('/api/admin/notify-plan-change', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -139,7 +148,7 @@ export default function CartesPage() {
     if (!confirm('Confirmer le renouvellement ? Les messages supplémentaires seront remis à 0.')) return;
     setRenewingId(id);
     await supabase.from('carte_profiles').update({ extra_chat_messages: 0 }).eq('id', id);
-    setCartes(prev => prev.map(c => c.id === id ? { ...c, extra_chat_messages: 0 } : c));
+    setAllProfiles(prev => prev.map(c => c.id === id ? { ...c, extra_chat_messages: 0 } : c));
     setUsageCounts(prev => ({ ...prev, [id]: 0 }));
     setRenewingId(null);
   }
@@ -148,7 +157,7 @@ export default function CartesPage() {
     setAddingMsgs(id);
     const newTotal = current + 200;
     await supabase.from('carte_profiles').update({ extra_chat_messages: newTotal }).eq('id', id);
-    setCartes(prev => prev.map(c => c.id === id ? { ...c, extra_chat_messages: newTotal } : c));
+    setAllProfiles(prev => prev.map(c => c.id === id ? { ...c, extra_chat_messages: newTotal } : c));
     setAddingMsgs(null);
   }
 
@@ -302,7 +311,7 @@ export default function CartesPage() {
         <div style={{ overflowX: 'auto' }}>
           <table className="lead-table">
             <thead>
-              <tr><th>Nom</th><th>Poste / Entreprise</th><th>Slug</th><th>Plan</th><th>Utilisation ce mois</th><th>Créée le</th><th>Statut</th><th>Actions</th></tr>
+              <tr><th>Nom</th><th>Poste / Entreprise</th><th>Slug</th><th>Plan</th><th>Utilisation ce mois</th><th>Membres</th><th>Créée le</th><th>Statut</th><th>Actions</th></tr>
             </thead>
             <tbody>
               {cartes.map(carte => {
@@ -351,6 +360,16 @@ export default function CartesPage() {
                           </div>
                         );
                       })() : <span style={{ color: 'var(--text-faint)', fontSize: '0.8rem' }}>—</span>}
+                    </td>
+                    <td>
+                      {(() => {
+                        const count = allProfiles.filter(p => p.team_owner_id === carte.user_id).length;
+                        return count > 0 ? (
+                          <button onClick={() => setMembersDrawer(carte)} style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', color: '#22C55E', borderRadius: 6, padding: '3px 10px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>
+                            {count} membre{count > 1 ? 's' : ''}
+                          </button>
+                        ) : <span style={{ color: 'var(--text-faint)', fontSize: '0.8rem' }}>—</span>;
+                      })()}
                     </td>
                     <td style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{new Date(carte.created_at).toLocaleDateString('fr-FR')}</td>
                     <td><span className={`status-badge ${carte.active ? 'status-converted' : 'status-lost'}`}>{carte.active ? 'Active' : 'Inactive'}</span></td>
@@ -736,6 +755,68 @@ export default function CartesPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* DRAWER — Membres d'équipe */}
+      {membersDrawer && (
+        <>
+          {/* Overlay */}
+          <div onClick={() => setMembersDrawer(null)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300 }} />
+          {/* Panneau */}
+          <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '100%', maxWidth: 520, background: 'var(--dark-2)', borderLeft: '1px solid var(--card-border)', zIndex: 301, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+            {/* En-tête */}
+            <div style={{ padding: '24px 24px 16px', borderBottom: '1px solid var(--card-border)', display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button onClick={() => setMembersDrawer(null)} style={{ background: 'var(--dark-3)', border: '1px solid var(--card-border)', borderRadius: 8, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0 }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="16" height="16"><polyline points="15 18 9 12 15 6" /></svg>
+              </button>
+              <div>
+                <h2 style={{ fontSize: '1rem', fontWeight: 800, margin: 0 }}>Membres — {membersDrawer.company || membersDrawer.name}</h2>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>{drawerMembers.length} membre{drawerMembers.length > 1 ? 's' : ''} d&apos;équipe</p>
+              </div>
+            </div>
+
+            {/* Liste membres */}
+            <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {drawerMembers.length === 0 ? (
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '32px 0' }}>Aucun membre pour ce compte.</p>
+              ) : drawerMembers.map(membre => {
+                const plan = (membre.plan || 'starter').toLowerCase();
+                return (
+                  <div key={membre.id} style={{ background: 'var(--dark-3)', border: '1px solid var(--card-border)', borderRadius: 12, padding: '16px 18px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <div>
+                        <p style={{ fontWeight: 700, fontSize: '0.95rem', margin: 0 }}>{membre.name}</p>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '2px 0 0' }}>
+                          {membre.title || '—'}{membre.company ? ` · ${membre.company}` : ''}
+                        </p>
+                      </div>
+                      <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--secondary)', background: 'rgba(62,207,207,0.08)', padding: '3px 8px', borderRadius: 6 }}>{membre.slug}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <span className={`status-badge ${membre.active ? 'status-converted' : 'status-lost'}`}>{membre.active ? 'Active' : 'Inactive'}</span>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-faint)' }}>{new Date(membre.created_at).toLocaleDateString('fr-FR')}</span>
+                      <a href={`https://digitalsucces.tech/c/${membre.slug}`} target="_blank" rel="noreferrer"
+                        style={{ fontSize: '0.78rem', color: 'var(--primary)', fontWeight: 600, marginLeft: 'auto' }}>Voir ↗</a>
+                      <button onClick={() => toggleActive(membre.id, membre.active)}
+                        style={{ fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none', color: membre.active ? 'var(--accent)' : 'var(--secondary)', padding: 0 }}>
+                        {membre.active ? 'Désactiver' : 'Activer'}
+                      </button>
+                      <button onClick={() => { setThemeModal({ id: membre.id, slug: membre.slug }); setTheme({ bg_color: membre.bg_color || EMPTY_THEME.bg_color, primary_color: membre.primary_color || EMPTY_THEME.primary_color, secondary_color: membre.secondary_color || EMPTY_THEME.secondary_color, text_color: membre.text_color || EMPTY_THEME.text_color, font_heading: membre.font_heading || EMPTY_THEME.font_heading, logo_url: membre.logo_url || '', logo_position: membre.logo_position || 'center' }); }}
+                        style={{ fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none', color: 'var(--text-muted)', padding: 0 }}>
+                        🎨 Thème
+                      </button>
+                      <button onClick={() => setDeleteConfirm(membre)}
+                        style={{ fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none', color: '#EF4444', padding: 0 }}>
+                        Supprimer
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </>
       )}
     </>
   );
