@@ -246,7 +246,7 @@ export default function CartesPage() {
   async function deleteClient() {
     if (!deleteConfirm) return;
     setDeleting(true);
-    await fetch('/api/admin/delete-carte', {
+    const res = await fetch('/api/admin/delete-carte', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -255,8 +255,13 @@ export default function CartesPage() {
         user_id:    deleteConfirm.user_id,
       }),
     });
-    setDeleteConfirm(null);
     setDeleting(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert('Erreur suppression : ' + (data.error || res.status));
+      return;
+    }
+    setDeleteConfirm(null);
     fetchCartes();
   }
 

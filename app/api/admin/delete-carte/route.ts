@@ -24,9 +24,14 @@ export async function POST(req: NextRequest) {
     await supabaseAdmin.storage.from('carte-images').remove(paths);
   }
 
-  // 2. Supprimer les tables liées (chat logs, documents, portfolio, etc.)
+  // 2. Supprimer toutes les tables liées
   await supabaseAdmin.from('carte_chat_logs').delete().eq('profile_id', profile_id);
   await supabaseAdmin.from('carte_documents').delete().eq('profile_id', profile_id);
+  await supabaseAdmin.from('carte_portfolio').delete().eq('profile_id', profile_id);
+  await supabaseAdmin.from('carte_links').delete().eq('profile_id', profile_id);
+  await supabaseAdmin.from('carte_videos').delete().eq('profile_id', profile_id);
+  await supabaseAdmin.from('carte_visits').delete().eq('profile_id', profile_id);
+  await supabaseAdmin.from('carte_leads').delete().eq('profile_id', profile_id);
   await supabaseAdmin.from('carte_push_subscriptions').delete().eq('profile_id', profile_id);
 
   // 3. Supprimer le profil
