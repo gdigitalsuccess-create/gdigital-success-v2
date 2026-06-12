@@ -111,11 +111,12 @@ export default function CartesPage() {
       }, billingCycleStart(profiles[0].created_at));
 
       const ids = profiles.map((p: CarteProfile) => p.id);
-      const { data: logs } = await supabase
-        .from('carte_chat_logs')
-        .select('profile_id, created_at')
-        .in('profile_id', ids)
-        .gte('created_at', earliestCycle.toISOString());
+      const logsRes = await fetch('/api/admin/chat-logs-usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profile_ids: ids, since: earliestCycle.toISOString() }),
+      });
+      const logs: { profile_id: string; created_at: string }[] = logsRes.ok ? await logsRes.json() : [];
 
       const counts: Record<string, number> = {};
       (logs || []).forEach((log: { profile_id: string; created_at: string }) => {

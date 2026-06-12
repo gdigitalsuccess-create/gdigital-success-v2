@@ -1179,9 +1179,9 @@ export default function DashboardPage() {
         const currentPlan = (profile.plan ?? 'starter').toLowerCase();
         const plans = [
           { key: 'starter',       label: 'Starter',         price: '$12/mois', features: ['Page digitale active', 'Infos modifiables', '1 vidéo', '6 photos', 'Liens personnalisés'] },
-          { key: 'pro',           label: 'Pro',             price: '$24/mois', features: ['+ Logo, couleurs, PDF', 'Stats de visites', 'Bouton RDV', 'Notifications push', '2 vidéos · 12 photos'] },
-          { key: 'business',      label: 'Business',        price: '$49/mois', features: ['+ Signature email pro', 'Vidéos & photos illimitées', 'Liens illimités', 'Support prioritaire'] },
-          { key: 'business_team', label: 'Business Équipe', price: '$89/mois', features: ['+ Jusqu\'à 10 cartes membres', 'Gestion équipe centralisée', 'Activation / désactivation', 'Idéal PME & équipes'] },
+          { key: 'pro',           label: 'Pro',             price: '$29/mois', features: ['+ Logo, couleurs, PDF', 'Stats de visites', 'Bouton RDV', 'Notifications push', '2 vidéos · 12 photos'] },
+          { key: 'business',      label: 'Business',        price: '$59/mois', features: ['+ Signature email pro', 'Vidéos & photos illimitées', 'Liens illimités', 'Support prioritaire'] },
+          { key: 'business_team', label: 'Business Équipe', price: '$99/mois', features: ['+ Jusqu\'à 10 cartes membres', 'Gestion équipe centralisée', 'Activation / désactivation', 'Idéal PME & équipes'] },
         ];
         const COLORS: Record<string, { bg: string; border: string; text: string }> = {
           starter:       { bg: 'rgba(108,99,255,0.08)',  border: 'rgba(108,99,255,0.3)',  text: '#A78BFA' },
