@@ -92,6 +92,8 @@ async function getProfile(slug: string): Promise<Profile | null> {
     orange_money_url:      data.orange_money_url      ?? undefined,
     mtn_url:               data.mtn_url               ?? undefined,
     cinetpay_url:          data.cinetpay_url          ?? undefined,
+    airtel_money_url:      data.airtel_money_url      ?? undefined,
+    moov_money_url:        data.moov_money_url        ?? undefined,
     videos: (src.carte_videos ?? [])
       .sort((a: { position: number }, b: { position: number }) => a.position - b.position)
       .map((v: { id: string; type: string; url: string; platform?: string; caption?: string; position: number }) => ({

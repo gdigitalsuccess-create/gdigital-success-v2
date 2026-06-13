@@ -86,6 +86,8 @@ export type Profile = {
   orange_money_url?: string;
   mtn_url?: string;
   cinetpay_url?: string;
+  airtel_money_url?: string;
+  moov_money_url?: string;
 };
 
 function getLuminance(hex: string): number {
@@ -537,6 +539,8 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
               { url: profile.orange_money_url,  label: 'Orange Money', logo: '/assets/payment/orange-money.svg' },
               { url: profile.mtn_url,           label: 'MTN MoMo',     logo: '/assets/payment/mtn.svg' },
               { url: profile.cinetpay_url,      label: 'CinetPay',     logo: '/assets/payment/cinetpay.svg' },
+              { url: profile.airtel_money_url,  label: 'Airtel Money', logo: '/assets/payment/airtel-money.svg' },
+              { url: profile.moov_money_url,    label: 'Moov Money',   logo: '/assets/payment/moov-money.svg' },
             ].filter(p => p.url).map(p => (
               <a
                 key={p.label}
