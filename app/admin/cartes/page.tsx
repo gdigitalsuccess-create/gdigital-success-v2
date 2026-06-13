@@ -286,7 +286,12 @@ export default function CartesPage() {
     const ext = file.name.split('.').pop();
     const path = `${themeModal.slug}/logo.${ext}`;
     const { data, error } = await supabase.storage.from('carte-images').upload(path, file, { upsert: true });
-    if (!error && data) {
+    if (error) {
+      alert(`Erreur upload logo : ${error.message}`);
+      setUploadingLogo(false);
+      return;
+    }
+    if (data) {
       const { data: { publicUrl } } = supabase.storage.from('carte-images').getPublicUrl(path);
       setTheme(t => ({ ...t, logo_url: publicUrl }));
     }
@@ -581,7 +586,12 @@ export default function CartesPage() {
                               const ext = file.name.split('.').pop();
                               const path = `${form.slug}/logo.${ext}`;
                               const { data, error: upErr } = await supabase.storage.from('carte-images').upload(path, file, { upsert: true });
-                              if (!upErr && data) {
+                              if (upErr) {
+                                alert(`Erreur upload logo : ${upErr.message}`);
+                                setUploadingLogo(false);
+                                return;
+                              }
+                              if (data) {
                                 const { data: { publicUrl } } = supabase.storage.from('carte-images').getPublicUrl(path);
                                 setTheme(t => ({ ...t, logo_url: publicUrl }));
                               }
