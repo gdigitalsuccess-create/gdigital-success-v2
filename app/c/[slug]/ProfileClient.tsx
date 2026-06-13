@@ -82,6 +82,10 @@ export type Profile = {
   label_videos?: string;
   whatsapp_auto_enabled?: boolean;
   whatsapp_auto_message?: string;
+  wave_url?: string;
+  orange_money_url?: string;
+  mtn_url?: string;
+  cinetpay_url?: string;
 };
 
 function getLuminance(hex: string): number {
@@ -526,6 +530,25 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
                 Partager cette carte sur WhatsApp
               </a>
             )}
+
+            {/* Mobile Money */}
+            {[
+              { url: profile.wave_url,         label: 'Payer via Wave',         color: '#1565C0', icon: '🌊' },
+              { url: profile.orange_money_url,  label: 'Payer via Orange Money', color: '#FF6600', icon: '🟠' },
+              { url: profile.mtn_url,           label: 'Payer via MTN Money',    color: '#FFCC00', textColor: '#1A1A1A', icon: '💛' },
+              { url: profile.cinetpay_url,      label: 'Payer via CinetPay',     color: '#6B21A8', icon: '💜' },
+            ].filter(p => p.url).map(p => (
+              <a
+                key={p.label}
+                href={p.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', padding: '13px 20px', borderRadius: 12, background: p.color, color: p.textColor ?? '#fff', fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none' }}
+              >
+                <span style={{ fontSize: '1.1rem' }}>{p.icon}</span>
+                {p.label}
+              </a>
+            ))}
 
             {/* Tertiaire : laisser coordonnées */}
             <button onClick={() => setShowLeadModal(true)} className={styles.pillTertiary}>

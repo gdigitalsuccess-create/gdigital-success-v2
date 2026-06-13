@@ -32,6 +32,10 @@ type Profile = {
   telegram: string;
   whatsapp_auto_enabled: boolean;
   whatsapp_auto_message: string;
+  wave_url: string;
+  orange_money_url: string;
+  mtn_url: string;
+  cinetpay_url: string;
   plan: string;
   ai_instructions: string;
   primary_color: string;
@@ -142,6 +146,10 @@ const EMPTY_FORM = {
   instagram: '', tiktok: '', facebook: '', linkedin: '', youtube: '', twitter: '', snapchat: '', telegram: '',
   whatsapp_auto_enabled: false,
   whatsapp_auto_message: '',
+  wave_url: '',
+  orange_money_url: '',
+  mtn_url: '',
+  cinetpay_url: '',
   ai_instructions: '',
   label_rdv: '', label_documents: '', label_videos: '', portfolio_title: '',
 };
@@ -227,7 +235,7 @@ export default function DashboardPage() {
 
   // Active section (tab navigation)
   const [activeSection, setActiveSection] = useState('section-profil');
-  const FORM_SECTIONS = new Set(['section-profil','section-contact','section-rdv','section-labels','section-socials','section-agent-ia','section-whatsapp']);
+  const FORM_SECTIONS = new Set(['section-profil','section-contact','section-rdv','section-labels','section-socials','section-agent-ia','section-whatsapp','section-paiement']);
   const PREVIEW_SECTIONS = new Set(['section-profil','section-contact','section-rdv','section-labels','section-socials','section-liens','section-agent-ia']);
 
   // Password change state
@@ -426,6 +434,10 @@ export default function DashboardPage() {
         telegram:               data.telegram               ?? '',
         whatsapp_auto_enabled:  data.whatsapp_auto_enabled  ?? false,
         whatsapp_auto_message:  data.whatsapp_auto_message  ?? '',
+        wave_url:               data.wave_url               ?? '',
+        orange_money_url:       data.orange_money_url       ?? '',
+        mtn_url:                data.mtn_url                ?? '',
+        cinetpay_url:           data.cinetpay_url           ?? '',
         ai_instructions:        data.ai_instructions        ?? '',
         label_rdv:        data.label_rdv        ?? '',
         label_documents:  data.label_documents  ?? '',
@@ -1078,6 +1090,7 @@ export default function DashboardPage() {
           {[
             { id: 'section-liens',      emoji: '🌐', label: 'Liens' },
             { id: 'section-whatsapp',   emoji: '💬', label: 'WhatsApp Auto' },
+            { id: 'section-paiement',   emoji: '💳', label: 'Mobile Money' },
             { id: 'section-equipe',     emoji: '👥', label: 'Équipe' },
             { id: 'section-documents',  emoji: '📄', label: 'Documents' },
             { id: 'section-portfolio',  emoji: '🖼', label: 'Réalisations' },
@@ -1511,6 +1524,45 @@ Délai de réponse habituel : [ex: 24h]
 Langue de travail : [français, anglais...]`}
               />
             </div>
+          </div>
+        )}
+
+        {/* ---- Mobile Money ---- */}
+        {activeSection === 'section-paiement' && (
+          <div className={styles.section}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+              <p className={styles.sectionTitle} style={{ marginBottom: 0 }}>Mobile Money</p>
+              <span style={{ fontSize: '0.62rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', background: 'rgba(212,168,67,0.15)', color: '#D4A843', border: '1px solid rgba(212,168,67,0.3)', borderRadius: 9999, padding: '2px 9px' }}>
+                Nouveau
+              </span>
+            </div>
+            <p style={{ fontSize: '0.78rem', color: '#6B7280', margin: '0 0 20px', lineHeight: 1.6 }}>
+              Ajoutez vos liens de paiement mobile — Wave, Orange Money, MTN, CinetPay. Un bouton &quot;Me payer&quot; apparaîtra sur votre carte publique pour chaque service configuré.
+            </p>
+
+            {[
+              { key: 'wave_url',         label: 'Wave',         logo: '🌊', placeholder: 'https://pay.wave.com/m/...' },
+              { key: 'orange_money_url', label: 'Orange Money', logo: '🟠', placeholder: 'https://om.orange.cm/...' },
+              { key: 'mtn_url',          label: 'MTN Mobile Money', logo: '💛', placeholder: 'https://mtn.com/pay/...' },
+              { key: 'cinetpay_url',     label: 'CinetPay',    logo: '💜', placeholder: 'https://cinetpay.com/...' },
+            ].map(({ key, label, logo, placeholder }) => (
+              <div key={key} className={styles.field} style={{ marginBottom: 14 }}>
+                <label className={styles.label}>
+                  <span style={{ marginRight: 6 }}>{logo}</span>{label}
+                </label>
+                <input
+                  className={styles.input}
+                  type="url"
+                  value={((form as unknown) as Record<string, string>)[key] ?? ''}
+                  onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+                  placeholder={placeholder}
+                />
+              </div>
+            ))}
+
+            <p style={{ fontSize: '0.7rem', color: '#6B7280', marginTop: 4, lineHeight: 1.6 }}>
+              Laissez vide les services que vous n&apos;utilisez pas. Seuls les services renseignés apparaîtront sur la carte.
+            </p>
           </div>
         )}
 

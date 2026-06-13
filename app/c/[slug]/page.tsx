@@ -88,6 +88,10 @@ async function getProfile(slug: string): Promise<Profile | null> {
     label_videos:          src.label_videos          ?? undefined,
     whatsapp_auto_enabled: data.whatsapp_auto_enabled ?? false,
     whatsapp_auto_message: data.whatsapp_auto_message ?? undefined,
+    wave_url:              data.wave_url              ?? undefined,
+    orange_money_url:      data.orange_money_url      ?? undefined,
+    mtn_url:               data.mtn_url               ?? undefined,
+    cinetpay_url:          data.cinetpay_url          ?? undefined,
     videos: (src.carte_videos ?? [])
       .sort((a: { position: number }, b: { position: number }) => a.position - b.position)
       .map((v: { id: string; type: string; url: string; platform?: string; caption?: string; position: number }) => ({
