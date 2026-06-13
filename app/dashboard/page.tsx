@@ -40,6 +40,8 @@ type Profile = {
   moov_money_url: string;
   wise_url: string;
   paypal_url: string;
+  voice_message_url: string;
+  voice_message_enabled: boolean;
   plan: string;
   ai_instructions: string;
   primary_color: string;
@@ -158,6 +160,8 @@ const EMPTY_FORM = {
   moov_money_url: '',
   wise_url: '',
   paypal_url: '',
+  voice_message_url: '',
+  voice_message_enabled: false,
   ai_instructions: '',
   label_rdv: '', label_documents: '', label_videos: '', portfolio_title: '',
 };
@@ -243,7 +247,7 @@ export default function DashboardPage() {
 
   // Active section (tab navigation)
   const [activeSection, setActiveSection] = useState('section-profil');
-  const FORM_SECTIONS = new Set(['section-profil','section-contact','section-rdv','section-labels','section-socials','section-agent-ia','section-whatsapp','section-paiement']);
+  const FORM_SECTIONS = new Set(['section-profil','section-contact','section-rdv','section-labels','section-socials','section-agent-ia','section-whatsapp','section-paiement','section-vocal']);
   const PREVIEW_SECTIONS = new Set(['section-profil','section-contact','section-rdv','section-labels','section-socials','section-liens','section-agent-ia']);
 
   // Password change state
@@ -259,6 +263,7 @@ export default function DashboardPage() {
   const [addingVideo, setAddingVideo]           = useState(false);
   const [uploadingVideo, setUploadingVideo]     = useState(false);
   const [deletingVideoId, setDeletingVideoId]   = useState<string | null>(null);
+  const [uploadingVoice, setUploadingVoice]     = useState(false);
 
   // Portfolio state
   const [portfolio, setPortfolio]                   = useState<PortfolioItem[]>([]);
@@ -450,6 +455,8 @@ export default function DashboardPage() {
         moov_money_url:         data.moov_money_url         ?? '',
         wise_url:               data.wise_url               ?? '',
         paypal_url:             data.paypal_url             ?? '',
+        voice_message_url:      data.voice_message_url      ?? '',
+        voice_message_enabled:  data.voice_message_enabled  ?? false,
         ai_instructions:        data.ai_instructions        ?? '',
         label_rdv:        data.label_rdv        ?? '',
         label_documents:  data.label_documents  ?? '',
@@ -595,6 +602,40 @@ export default function DashboardPage() {
       setMsg({ text: 'Erreur upload vidéo : ' + error.message, type: 'error' });
     }
     setUploadingCoverVideo(false);
+  }
+
+  async function handleVoiceUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !profile) return;
+    if (file.size > 15 * 1024 * 1024) {
+      setMsg({ text: 'Fichier trop lourd — 15 Mo maximum.', type: 'error' });
+      return;
+    }
+    setUploadingVoice(true);
+    const ext = file.name.split('.').pop() ?? 'mp3';
+    const path = `${profile.slug}/voice-message.${ext}`;
+    const { error } = await supabase.storage
+      .from('carte-images')
+      .upload(path, file, { upsert: true, contentType: file.type });
+    if (!error) {
+      const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/carte-images/${path}`;
+      await supabase.from('carte_profiles').update({ voice_message_url: url }).eq('id', profile.id);
+      setProfile(prev => prev ? { ...prev, voice_message_url: url } : prev);
+      setForm(f => ({ ...f, voice_message_url: url }));
+    } else {
+      setMsg({ text: 'Erreur upload : ' + error.message, type: 'error' });
+    }
+    setUploadingVoice(false);
+    e.target.value = '';
+  }
+
+  async function handleVoiceDelete() {
+    if (!profile || !confirm('Supprimer le message vocal ?')) return;
+    await supabase.from('carte_profiles')
+      .update({ voice_message_url: null, voice_message_enabled: false })
+      .eq('id', profile.id);
+    setProfile(prev => prev ? { ...prev, voice_message_url: '', voice_message_enabled: false } : prev);
+    setForm(f => ({ ...f, voice_message_url: '', voice_message_enabled: false }));
   }
 
   async function getToken(): Promise<string | null> {
@@ -1103,6 +1144,7 @@ export default function DashboardPage() {
             { id: 'section-liens',      emoji: '🌐', label: 'Liens' },
             { id: 'section-whatsapp',   emoji: '💬', label: 'WhatsApp Auto' },
             { id: 'section-paiement',   emoji: '💳', label: 'Mobile Money' },
+            { id: 'section-vocal',      emoji: '🎙️', label: 'Message Vocal' },
             { id: 'section-equipe',     emoji: '👥', label: 'Équipe' },
             { id: 'section-documents',  emoji: '📄', label: 'Documents' },
             { id: 'section-portfolio',  emoji: '🖼', label: 'Réalisations' },
@@ -1536,6 +1578,59 @@ Délai de réponse habituel : [ex: 24h]
 Langue de travail : [français, anglais...]`}
               />
             </div>
+          </div>
+        )}
+
+        {/* ---- Message Vocal ---- */}
+        {activeSection === 'section-vocal' && (
+          <div className={styles.section}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+              <p className={styles.sectionTitle} style={{ marginBottom: 0 }}>Message Vocal</p>
+              <span style={{ fontSize: '0.62rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', background: 'rgba(99,102,241,0.15)', color: '#818CF8', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 9999, padding: '2px 9px' }}>
+                Nouveau
+              </span>
+            </div>
+            <p style={{ fontSize: '0.78rem', color: '#6B7280', margin: '0 0 20px', lineHeight: 1.6 }}>
+              Importez un message audio de présentation (MP3, M4A, WAV — 15 Mo max). Un bouton &quot;Écouter&quot; apparaîtra sur votre carte publique.
+            </p>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', background: `rgba(99,102,241,${form.voice_message_enabled ? '0.08' : '0.03'})`, border: `1px solid ${form.voice_message_enabled ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 12, padding: '14px 16px', marginBottom: 20, transition: 'border-color .2s' }}>
+              <input
+                type="checkbox"
+                checked={form.voice_message_enabled}
+                onChange={e => setForm(f => ({ ...f, voice_message_enabled: e.target.checked }))}
+                style={{ width: 18, height: 18, accentColor: '#818CF8', cursor: 'pointer', flexShrink: 0 }}
+              />
+              <div>
+                <div style={{ fontWeight: 600, color: 'white', fontSize: '0.875rem' }}>Activer le message vocal</div>
+                <div style={{ fontSize: '0.72rem', color: '#6B7280', marginTop: 2 }}>Vos visiteurs pourront écouter votre présentation en 1 clic</div>
+              </div>
+            </label>
+
+            {form.voice_message_enabled && (
+              form.voice_message_url ? (
+                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px' }}>
+                  <p style={{ fontSize: '0.72rem', color: '#6B7280', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '.5px', fontWeight: 700 }}>Aperçu</p>
+                  <audio src={form.voice_message_url} controls style={{ width: '100%', borderRadius: 8 }} />
+                  <button
+                    type="button"
+                    onClick={handleVoiceDelete}
+                    style={{ marginTop: 12, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#F87171', borderRadius: 8, padding: '8px 16px', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', width: '100%' }}
+                  >
+                    Supprimer le message vocal
+                  </button>
+                </div>
+              ) : (
+                <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, border: '2px dashed rgba(99,102,241,0.35)', borderRadius: 12, padding: '28px 20px', cursor: uploadingVoice ? 'wait' : 'pointer', opacity: uploadingVoice ? 0.7 : 1 }}>
+                  <input type="file" accept=".mp3,.wav,.m4a,.ogg,audio/*" onChange={handleVoiceUpload} style={{ display: 'none' }} disabled={uploadingVoice} />
+                  <span style={{ fontSize: '2rem' }}>🎙️</span>
+                  <span style={{ fontWeight: 600, color: 'white', fontSize: '0.875rem' }}>
+                    {uploadingVoice ? 'Chargement...' : 'Importer un fichier audio'}
+                  </span>
+                  <span style={{ fontSize: '0.72rem', color: '#6B7280' }}>MP3, M4A, WAV · 15 Mo max</span>
+                </label>
+              )
+            )}
           </div>
         )}
 

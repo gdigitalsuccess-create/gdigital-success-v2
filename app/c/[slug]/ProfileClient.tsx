@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import styles from './profile.module.css';
 import LeadCaptureForm from './LeadCaptureForm';
 import PushSubscribeButton from './PushSubscribeButton';
@@ -90,6 +90,8 @@ export type Profile = {
   moov_money_url?: string;
   wise_url?: string;
   paypal_url?: string;
+  voice_message_url?: string;
+  voice_message_enabled?: boolean;
 };
 
 function getLuminance(hex: string): number {
@@ -238,6 +240,8 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
   const [openSection, setOpenSection] = useState<string | null>(null);
   const [showLeadModal, setShowLeadModal] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [audioPlaying, setAudioPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const portfolioItems = profile.portfolio ?? [];
   const openLightbox = (index: number) => setLightboxIndex(index);
@@ -434,6 +438,35 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
 
           {/* Action buttons */}
           <div className={styles.actionButtons}>
+            {/* Message Vocal */}
+            {profile.voice_message_enabled && profile.voice_message_url && (
+              <>
+                <audio
+                  ref={audioRef}
+                  src={profile.voice_message_url}
+                  onEnded={() => setAudioPlaying(false)}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!audioRef.current) return;
+                    if (audioPlaying) {
+                      audioRef.current.pause();
+                      audioRef.current.currentTime = 0;
+                      setAudioPlaying(false);
+                    } else {
+                      audioRef.current.play();
+                      setAudioPlaying(true);
+                    }
+                  }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', padding: '14px 20px', borderRadius: 12, background: audioPlaying ? 'linear-gradient(135deg,#7C3AED,#5B21B6)' : 'linear-gradient(135deg,#6C63FF,#4F46E5)', color: '#fff', fontWeight: 700, fontSize: '0.9rem', border: 'none', cursor: 'pointer' }}
+                >
+                  <span style={{ fontSize: '1.1rem' }}>{audioPlaying ? '⏹' : '🎙️'}</span>
+                  {audioPlaying ? 'Arrêter le message' : `Écouter le message de ${profile.name.split(' ')[0]}`}
+                </button>
+              </>
+            )}
+
             {/* Primaire : Prendre RDV */}
             {profile.rdv && (
               <a href={profile.rdv} target="_blank" rel="noopener noreferrer" className={styles.pillPrimary}>
