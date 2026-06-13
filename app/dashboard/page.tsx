@@ -1205,6 +1205,23 @@ export default function DashboardPage() {
               {item.icon}{item.label}
             </button>
           ))}
+
+          {/* Profil utilisateur en bas */}
+          <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.04)' }}>
+              <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#6C63FF,#4F46E5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.75rem', fontWeight: 700, color: 'white' }}>
+                {(form.name || user?.email || '?').split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()}
+              </div>
+              <div style={{ overflow: 'hidden' }}>
+                <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: '#E5E7EB', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {form.name || user?.email || '—'}
+                </p>
+                <p style={{ margin: 0, fontSize: '0.7rem', color: planStyle.color, fontWeight: 600 }}>
+                  Plan {(['starter','pro','business','business_team'].includes(plan) ? { starter:'Starter', pro:'Pro', business:'Business', business_team:'Business Équipe' }[plan] : plan)}
+                </p>
+              </div>
+            </div>
+          </div>
         </aside>
 
         {/* Contenu principal */}
