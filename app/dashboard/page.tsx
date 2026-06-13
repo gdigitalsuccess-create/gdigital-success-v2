@@ -3,6 +3,11 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import styles from './dashboard.module.css';
+import {
+  User as IconUser, Phone, Calendar, Tag, Share2, Globe, MessageCircle,
+  CreditCard, Mic, Users, FileText, Image, Video, Bot, Inbox, Bell,
+  Mail, Star, Lock, Link, ChevronRight,
+} from 'lucide-react';
 import MiniCardPreview from './MiniCardPreview';
 import MemberDashboard from './MemberDashboard';
 import CropModal from './CropModal';
@@ -1156,47 +1161,47 @@ export default function DashboardPage() {
         {/* Sidebar (desktop uniquement) */}
         <aside className={styles.sidebar}>
           <p className={styles.sidebarTitle}>Navigation</p>
-          {[
-            { id: 'section-profil',    emoji: '👤', label: 'Profil' },
-            { id: 'section-contact',   emoji: '📞', label: 'Contact' },
-            { id: 'section-rdv',       emoji: '📅', label: 'RDV' },
-            { id: 'section-labels',    emoji: '✏️', label: 'Labels' },
-            { id: 'section-socials',   emoji: '🔗', label: 'Réseaux sociaux' },
-          ].map(item => (
+          {([
+            { id: 'section-profil',  icon: <IconUser size={15}/>,     label: 'Profil' },
+            { id: 'section-contact', icon: <Phone size={15}/>,        label: 'Contact' },
+            { id: 'section-rdv',     icon: <Calendar size={15}/>,     label: 'RDV' },
+            { id: 'section-labels',  icon: <Tag size={15}/>,          label: 'Labels' },
+            { id: 'section-socials', icon: <Share2 size={15}/>,       label: 'Réseaux sociaux' },
+          ] as {id:string;icon:React.ReactNode;label:string}[]).map(item => (
             <button key={item.id} type="button" onClick={() => setActiveSection(item.id)}
               className={`${styles.sidebarLink} ${activeSection === item.id ? styles.sidebarLinkActive : ''}`}>
-              <span>{item.emoji}</span>{item.label}
+              {item.icon}{item.label}
             </button>
           ))}
           <div className={styles.sidebarDivider} />
-          {[
-            { id: 'section-liens',      emoji: '🌐', label: 'Liens' },
-            { id: 'section-whatsapp',   emoji: '💬', label: 'WhatsApp Auto' },
-            { id: 'section-paiement',   emoji: '💳', label: 'Mobile Money' },
-            { id: 'section-vocal',      emoji: '🎙️', label: 'Message Vocal' },
-            { id: 'section-equipe',     emoji: '👥', label: 'Équipe' },
-            { id: 'section-documents',  emoji: '📄', label: 'Documents' },
-            { id: 'section-portfolio',  emoji: '🖼', label: 'Réalisations' },
-            { id: 'section-videos',     emoji: '🎬', label: 'Vidéos' },
-            ...(['pro','business','business_team'].includes(plan) ? [{ id: 'section-agent-ia', emoji: '🤖', label: 'Assistant IA' }] : []),
-          ].map(item => (
+          {([
+            { id: 'section-liens',     icon: <Link size={15}/>,           label: 'Liens' },
+            { id: 'section-whatsapp',  icon: <MessageCircle size={15}/>,  label: 'WhatsApp Auto' },
+            { id: 'section-paiement',  icon: <CreditCard size={15}/>,     label: 'Mobile Money' },
+            { id: 'section-vocal',     icon: <Mic size={15}/>,            label: 'Message Vocal' },
+            { id: 'section-equipe',    icon: <Users size={15}/>,          label: 'Équipe' },
+            { id: 'section-documents', icon: <FileText size={15}/>,       label: 'Documents' },
+            { id: 'section-portfolio', icon: <Image size={15}/>,          label: 'Réalisations' },
+            { id: 'section-videos',    icon: <Video size={15}/>,          label: 'Vidéos' },
+            ...(['pro','business','business_team'].includes(plan) ? [{ id: 'section-agent-ia', icon: <Bot size={15}/>, label: 'Assistant IA' }] : []),
+          ] as {id:string;icon:React.ReactNode;label:string}[]).map(item => (
             <button key={item.id} type="button" onClick={() => setActiveSection(item.id)}
               className={`${styles.sidebarLink} ${activeSection === item.id ? styles.sidebarLinkActive : ''}`}>
-              <span>{item.emoji}</span>{item.label}
+              {item.icon}{item.label}
             </button>
           ))}
           <div className={styles.sidebarDivider} />
-          {[
-            { id: 'section-leads',        emoji: '💬', label: 'Contacts reçus' },
-            ...(['pro','business','business_team'].includes(plan) ? [{ id: 'section-chat-logs', emoji: '🤖', label: 'Conversations IA' }] : []),
-            { id: 'section-push',         emoji: '🔔', label: 'Notifications' },
-            { id: 'section-signature',    emoji: '✉️', label: 'Signature email' },
-            { id: 'section-plan',         emoji: '⭐', label: 'Mon plan' },
-            { id: 'section-password',     emoji: '🔒', label: 'Mot de passe' },
-          ].map(item => (
+          {([
+            { id: 'section-leads',     icon: <Inbox size={15}/>,          label: 'Contacts reçus' },
+            ...(['pro','business','business_team'].includes(plan) ? [{ id: 'section-chat-logs', icon: <Bot size={15}/>, label: 'Conversations IA' }] : []),
+            { id: 'section-push',      icon: <Bell size={15}/>,           label: 'Notifications' },
+            { id: 'section-signature', icon: <Mail size={15}/>,           label: 'Signature email' },
+            { id: 'section-plan',      icon: <Star size={15}/>,           label: 'Mon plan' },
+            { id: 'section-password',  icon: <Lock size={15}/>,           label: 'Mot de passe' },
+          ] as {id:string;icon:React.ReactNode;label:string}[]).map(item => (
             <button key={item.id} type="button" onClick={() => setActiveSection(item.id)}
               className={`${styles.sidebarLink} ${activeSection === item.id ? styles.sidebarLinkActive : ''}`}>
-              <span>{item.emoji}</span>{item.label}
+              {item.icon}{item.label}
             </button>
           ))}
         </aside>
