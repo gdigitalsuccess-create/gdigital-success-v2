@@ -275,6 +275,7 @@ export default function DashboardPage() {
   const [uploadingVoice, setUploadingVoice]     = useState(false);
   const [generatingVoice, setGeneratingVoice]   = useState(false);
   const [voiceType, setVoiceType]               = useState<'female'|'male'>('female');
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
 
   // Portfolio state
   const [portfolio, setPortfolio]                   = useState<PortfolioItem[]>([]);
@@ -1481,23 +1482,38 @@ export default function DashboardPage() {
           <p className={styles.sectionTitle}>Profil</p>
 
           {/* Langue de la carte */}
-          <div className={styles.field} style={{ marginBottom: 20 }}>
-            <label className={styles.label}>Langue de la carte</label>
-            <div style={{ display: 'flex', gap: 10 }}>
-              {[
-                { code: 'fr', flag: '🇫🇷', label: 'Français' },
-                { code: 'en', flag: '🇬🇧', label: 'English' },
-                { code: 'ar', flag: '🇸🇦', label: 'عربي' },
-              ].map(({ code, flag, label }) => (
-                <button key={code} type="button"
-                  onClick={() => setForm(f => ({ ...f, card_language: code }))}
-                  style={{ flex: 1, padding: '10px 6px', borderRadius: 10, border: `2px solid ${form.card_language === code ? '#D4A843' : 'rgba(255,255,255,0.08)'}`, background: form.card_language === code ? 'rgba(212,168,67,0.12)' : 'rgba(255,255,255,0.03)', color: form.card_language === code ? '#D4A843' : '#6B7280', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                  <span style={{ fontSize: '1.4rem' }}>{flag}</span>
-                  {label}
+          {(() => {
+            const LANGS = [
+              { code: 'fr', flag: '🇫🇷', label: 'Français' },
+              { code: 'en', flag: '🇬🇧', label: 'English' },
+              { code: 'ar', flag: '🇸🇦', label: 'عربي' },
+            ];
+            const current = LANGS.find(l => l.code === form.card_language) ?? LANGS[0];
+            return (
+              <div className={styles.field} style={{ marginBottom: 20, position: 'relative' }}>
+                <label className={styles.label}>Langue de la carte</label>
+                <button type="button" onClick={() => setLangDropdownOpen(o => !o)}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)', color: '#E5E7EB', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
+                  <span>{current.flag}</span>
+                  <span>{current.label}</span>
+                  <span style={{ marginLeft: 4, opacity: 0.5, fontSize: '0.7rem' }}>▼</span>
                 </button>
-              ))}
-            </div>
-          </div>
+                {langDropdownOpen && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: 4, background: '#1A1A2E', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, overflow: 'hidden', zIndex: 100, minWidth: 150 }}>
+                    {LANGS.map(({ code, flag, label }) => (
+                      <button key={code} type="button"
+                        onClick={() => { setForm(f => ({ ...f, card_language: code })); setLangDropdownOpen(false); }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 14px', background: form.card_language === code ? 'rgba(212,168,67,0.12)' : 'transparent', color: form.card_language === code ? '#D4A843' : '#E5E7EB', fontSize: '0.85rem', fontWeight: 600, border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+                        <span>{flag}</span>
+                        <span>{label}</span>
+                        {form.card_language === code && <span style={{ marginLeft: 'auto', color: '#D4A843' }}>✓</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           <div className={styles.field}>
             <label className={styles.label}>Nom complet</label>
