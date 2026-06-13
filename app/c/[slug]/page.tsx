@@ -83,9 +83,11 @@ async function getProfile(slug: string): Promise<Profile | null> {
         position: p.position,
       })),
     portfolioTitle: src.portfolio_title ?? "Nos réalisations",
-    label_rdv:       src.label_rdv       ?? undefined,
-    label_documents: src.label_documents ?? undefined,
-    label_videos:    src.label_videos    ?? undefined,
+    label_rdv:             src.label_rdv             ?? undefined,
+    label_documents:       src.label_documents       ?? undefined,
+    label_videos:          src.label_videos          ?? undefined,
+    whatsapp_auto_enabled: data.whatsapp_auto_enabled ?? false,
+    whatsapp_auto_message: data.whatsapp_auto_message ?? undefined,
     videos: (src.carte_videos ?? [])
       .sort((a: { position: number }, b: { position: number }) => a.position - b.position)
       .map((v: { id: string; type: string; url: string; platform?: string; caption?: string; position: number }) => ({
