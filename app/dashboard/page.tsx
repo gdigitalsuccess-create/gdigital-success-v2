@@ -1541,14 +1541,14 @@ Langue de travail : [français, anglais...]`}
             </p>
 
             {[
-              { key: 'wave_url',         label: 'Wave',         logo: '🌊', placeholder: 'https://pay.wave.com/m/...' },
-              { key: 'orange_money_url', label: 'Orange Money', logo: '🟠', placeholder: 'https://om.orange.cm/...' },
-              { key: 'mtn_url',          label: 'MTN Mobile Money', logo: '💛', placeholder: 'https://mtn.com/pay/...' },
-              { key: 'cinetpay_url',     label: 'CinetPay',    logo: '💜', placeholder: 'https://cinetpay.com/...' },
+              { key: 'wave_url',         label: 'Wave',             logo: '/assets/payment/wave.svg',         placeholder: 'https://pay.wave.com/m/...' },
+              { key: 'orange_money_url', label: 'Orange Money',     logo: '/assets/payment/orange-money.svg', placeholder: 'https://om.orange.cm/...' },
+              { key: 'mtn_url',          label: 'MTN Mobile Money', logo: '/assets/payment/mtn.svg',          placeholder: 'https://mtn.com/pay/...' },
+              { key: 'cinetpay_url',     label: 'CinetPay',         logo: '/assets/payment/cinetpay.svg',     placeholder: 'https://cinetpay.com/...' },
             ].map(({ key, label, logo, placeholder }) => (
               <div key={key} className={styles.field} style={{ marginBottom: 14 }}>
-                <label className={styles.label}>
-                  <span style={{ marginRight: 6 }}>{logo}</span>{label}
+                <label className={styles.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <img src={logo} alt={label} height={20} style={{ borderRadius: 4, objectFit: 'fill' }} />{label}
                 </label>
                 <input
                   className={styles.input}
