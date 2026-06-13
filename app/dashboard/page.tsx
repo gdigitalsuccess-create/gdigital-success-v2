@@ -1557,10 +1557,10 @@ Langue de travail : [français, anglais...]`}
               { key: 'orange_money_url', label: 'Orange Money',     logo: '/assets/payment/orange-money.jpeg', placeholder: 'https://om.orange.cm/...' },
               { key: 'mtn_url',          label: 'MTN Mobile Money', logo: '/assets/payment/mtn.png',           placeholder: 'https://mtn.com/pay/...' },
               { key: 'cinetpay_url',     label: 'CinetPay',         logo: '/assets/payment/cinetpay.jpg',      placeholder: 'https://cinetpay.com/...' },
-              { key: 'airtel_money_url', label: 'Airtel Money',     logo: '/assets/payment/airtel-money.webp', placeholder: 'https://airtel.africa/pay/...' },
+              { key: 'airtel_money_url', label: 'Airtel Money',     logo: '/assets/payment/airtel-money.png',  placeholder: 'https://airtel.africa/pay/...' },
               { key: 'moov_money_url',   label: 'Moov Money',       logo: '/assets/payment/moov-money.png',    placeholder: 'https://moov-africa.com/pay/...' },
               { key: 'wise_url',         label: 'Wise',             logo: '/assets/payment/wise.jpg',          placeholder: 'https://wise.com/pay/...' },
-              { key: 'paypal_url',       label: 'PayPal',           logo: '/assets/payment/paypal.webp',       placeholder: 'https://paypal.me/...' },
+              { key: 'paypal_url',       label: 'PayPal',           logo: '/assets/payment/paypal.png',        placeholder: 'https://paypal.me/...' },
             ].map(({ key, label, logo, placeholder }) => (
               <div key={key} className={styles.field} style={{ marginBottom: 14 }}>
                 <label className={styles.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
