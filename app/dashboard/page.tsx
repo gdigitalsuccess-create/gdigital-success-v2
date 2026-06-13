@@ -38,6 +38,8 @@ type Profile = {
   cinetpay_url: string;
   airtel_money_url: string;
   moov_money_url: string;
+  wise_url: string;
+  paypal_url: string;
   plan: string;
   ai_instructions: string;
   primary_color: string;
@@ -154,6 +156,8 @@ const EMPTY_FORM = {
   cinetpay_url: '',
   airtel_money_url: '',
   moov_money_url: '',
+  wise_url: '',
+  paypal_url: '',
   ai_instructions: '',
   label_rdv: '', label_documents: '', label_videos: '', portfolio_title: '',
 };
@@ -444,6 +448,8 @@ export default function DashboardPage() {
         cinetpay_url:           data.cinetpay_url           ?? '',
         airtel_money_url:       data.airtel_money_url       ?? '',
         moov_money_url:         data.moov_money_url         ?? '',
+        wise_url:               data.wise_url               ?? '',
+        paypal_url:             data.paypal_url             ?? '',
         ai_instructions:        data.ai_instructions        ?? '',
         label_rdv:        data.label_rdv        ?? '',
         label_documents:  data.label_documents  ?? '',
@@ -1553,6 +1559,8 @@ Langue de travail : [français, anglais...]`}
               { key: 'cinetpay_url',     label: 'CinetPay',         logo: '/assets/payment/cinetpay.svg',     placeholder: 'https://cinetpay.com/...' },
               { key: 'airtel_money_url', label: 'Airtel Money',     logo: '/assets/payment/airtel-money.svg', placeholder: 'https://airtel.africa/pay/...' },
               { key: 'moov_money_url',   label: 'Moov Money',       logo: '/assets/payment/moov-money.svg',   placeholder: 'https://moov-africa.com/pay/...' },
+              { key: 'wise_url',         label: 'Wise',             logo: '/assets/payment/wise.svg',         placeholder: 'https://wise.com/pay/...' },
+              { key: 'paypal_url',       label: 'PayPal',           logo: '/assets/payment/paypal.svg',       placeholder: 'https://paypal.me/...' },
             ].map(({ key, label, logo, placeholder }) => (
               <div key={key} className={styles.field} style={{ marginBottom: 14 }}>
                 <label className={styles.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

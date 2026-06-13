@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" width="120" height="40">
+  <rect width="120" height="40" rx="6" fill="#163300"/>
+  <rect x="8" y="10" width="20" height="20" rx="4" fill="#9FE870"/>
+  <text x="19" y="25" font-family="Arial, sans-serif" font-size="13" font-weight="900" fill="#163300" text-anchor="middle">W</text>
+  <text x="74" y="27" font-family="Arial, sans-serif" font-size="18" font-weight="800" fill="#9FE870" text-anchor="middle" letter-spacing="0.5">Wise</text>
+</svg>

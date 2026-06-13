@@ -88,6 +88,8 @@ export type Profile = {
   cinetpay_url?: string;
   airtel_money_url?: string;
   moov_money_url?: string;
+  wise_url?: string;
+  paypal_url?: string;
 };
 
 function getLuminance(hex: string): number {
@@ -541,6 +543,8 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
               { url: profile.cinetpay_url,      label: 'CinetPay',     logo: '/assets/payment/cinetpay.svg' },
               { url: profile.airtel_money_url,  label: 'Airtel Money', logo: '/assets/payment/airtel-money.svg' },
               { url: profile.moov_money_url,    label: 'Moov Money',   logo: '/assets/payment/moov-money.svg' },
+              { url: profile.wise_url,          label: 'Wise',         logo: '/assets/payment/wise.svg' },
+              { url: profile.paypal_url,        label: 'PayPal',       logo: '/assets/payment/paypal.svg' },
             ].filter(p => p.url).map(p => (
               <a
                 key={p.label}
