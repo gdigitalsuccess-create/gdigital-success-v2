@@ -242,7 +242,7 @@ export default function CartesPage() {
     setSaving(false);
   }
 
-  function closeModal() { setShowModal(false); setError(null); setCreated(null); setForm(EMPTY_FORM); }
+  function closeModal() { setShowModal(false); setError(null); setCreated(null); setForm(EMPTY_FORM); setTheme(EMPTY_THEME); }
 
   async function deleteClient() {
     if (!deleteConfirm) return;
@@ -326,7 +326,7 @@ export default function CartesPage() {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn btn-outline" onClick={fetchCartes} style={{ fontSize: '0.82rem' }}>↻ Actualiser</button>
-          <button className="btn btn-primary" onClick={() => setShowModal(true)} style={{ fontSize: '0.82rem' }}>+ Nouveau client</button>
+          <button className="btn btn-primary" onClick={() => { setTheme(EMPTY_THEME); setShowModal(true); }} style={{ fontSize: '0.82rem' }}>+ Nouveau client</button>
         </div>
       </div>
 
