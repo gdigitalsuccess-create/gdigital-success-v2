@@ -42,6 +42,8 @@ type Profile = {
   paypal_url: string;
   voice_message_url: string;
   voice_message_enabled: boolean;
+  voice_message_text: string;
+  card_language: string;
   plan: string;
   ai_instructions: string;
   primary_color: string;
@@ -162,6 +164,8 @@ const EMPTY_FORM = {
   paypal_url: '',
   voice_message_url: '',
   voice_message_enabled: false,
+  voice_message_text: '',
+  card_language: 'fr',
   ai_instructions: '',
   label_rdv: '', label_documents: '', label_videos: '', portfolio_title: '',
 };
@@ -264,6 +268,8 @@ export default function DashboardPage() {
   const [uploadingVideo, setUploadingVideo]     = useState(false);
   const [deletingVideoId, setDeletingVideoId]   = useState<string | null>(null);
   const [uploadingVoice, setUploadingVoice]     = useState(false);
+  const [generatingVoice, setGeneratingVoice]   = useState(false);
+  const [voiceType, setVoiceType]               = useState<'female'|'male'>('female');
 
   // Portfolio state
   const [portfolio, setPortfolio]                   = useState<PortfolioItem[]>([]);
@@ -457,6 +463,8 @@ export default function DashboardPage() {
         paypal_url:             data.paypal_url             ?? '',
         voice_message_url:      data.voice_message_url      ?? '',
         voice_message_enabled:  data.voice_message_enabled  ?? false,
+        voice_message_text:     data.voice_message_text     ?? '',
+        card_language:          data.card_language          ?? 'fr',
         ai_instructions:        data.ai_instructions        ?? '',
         label_rdv:        data.label_rdv        ?? '',
         label_documents:  data.label_documents  ?? '',
@@ -636,6 +644,27 @@ export default function DashboardPage() {
       .eq('id', profile.id);
     setProfile(prev => prev ? { ...prev, voice_message_url: '', voice_message_enabled: false } : prev);
     setForm(f => ({ ...f, voice_message_url: '', voice_message_enabled: false }));
+  }
+
+  async function handleGenerateVoice() {
+    if (!profile || !form.voice_message_text?.trim()) return;
+    setGeneratingVoice(true);
+    setMsg(null);
+    const res = await fetch('/api/carte/generate-voice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: form.voice_message_text, voice: voiceType, slug: profile.slug }),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      setMsg({ text: json.error ?? 'Erreur génération audio', type: 'error' });
+    } else {
+      setForm(f => ({ ...f, voice_message_url: json.url }));
+      setProfile(prev => prev ? { ...prev, voice_message_url: json.url } : prev);
+      setMsg({ text: 'Message vocal généré avec succès !', type: 'success' });
+      setTimeout(() => setMsg(null), 4000);
+    }
+    setGeneratingVoice(false);
   }
 
   async function getToken(): Promise<string | null> {
@@ -1445,6 +1474,26 @@ export default function DashboardPage() {
         {/* Profil */}
         <div id="section-profil" className={styles.section} style={{ display: activeSection === 'section-profil' ? 'block' : 'none' }}>
           <p className={styles.sectionTitle}>Profil</p>
+
+          {/* Langue de la carte */}
+          <div className={styles.field} style={{ marginBottom: 20 }}>
+            <label className={styles.label}>Langue de la carte</label>
+            <div style={{ display: 'flex', gap: 10 }}>
+              {[
+                { code: 'fr', flag: '🇫🇷', label: 'Français' },
+                { code: 'en', flag: '🇬🇧', label: 'English' },
+                { code: 'ar', flag: '🇸🇦', label: 'عربي' },
+              ].map(({ code, flag, label }) => (
+                <button key={code} type="button"
+                  onClick={() => setForm(f => ({ ...f, card_language: code }))}
+                  style={{ flex: 1, padding: '10px 6px', borderRadius: 10, border: `2px solid ${form.card_language === code ? '#D4A843' : 'rgba(255,255,255,0.08)'}`, background: form.card_language === code ? 'rgba(212,168,67,0.12)' : 'rgba(255,255,255,0.03)', color: form.card_language === code ? '#D4A843' : '#6B7280', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: '1.4rem' }}>{flag}</span>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className={styles.field}>
             <label className={styles.label}>Nom complet</label>
             <input className={styles.input} value={form.name} onChange={set('name')} placeholder="Jean Dupont" />
@@ -1582,57 +1631,108 @@ Langue de travail : [français, anglais...]`}
         )}
 
         {/* ---- Message Vocal ---- */}
-        {activeSection === 'section-vocal' && (
+        {activeSection === 'section-vocal' && (() => {
+          const firstName = form.name.split(' ')[0] || 'vous';
+          const TEMPLATES = [
+            `Bonjour et bienvenue ! Je suis ${firstName} et je suis ravi de vous accueillir sur ma carte digitale. Explorez mon profil et n'hésitez pas à me contacter. À très bientôt !`,
+            `Bonjour ! Merci d'avoir scanné ma carte. Je suis ${firstName} et je serais heureux d'échanger avec vous sur vos besoins. Contactez-moi directement via cette carte, je réponds rapidement !`,
+            `Bienvenue ! Je suis ${firstName}, entrepreneur passionné. Je construis des solutions pour vous aider à réussir. Découvrez mes services ici et parlons de votre projet ensemble !`,
+            `Bonjour ! Je suis ${firstName}, expert dans mon domaine, et je suis là pour répondre à toutes vos questions. Mon objectif : vous apporter les meilleures solutions. À bientôt !`,
+            `Bonjour ! Bienvenue sur ma carte digitale. Je m'appelle ${firstName} et je serais ravi de collaborer avec vous. Laissez-moi vos coordonnées et je vous recontacte très rapidement !`,
+          ];
+          return (
           <div className={styles.section}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-              <p className={styles.sectionTitle} style={{ marginBottom: 0 }}>Message Vocal</p>
+              <p className={styles.sectionTitle} style={{ marginBottom: 0 }}>Message Vocal IA</p>
               <span style={{ fontSize: '0.62rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', background: 'rgba(99,102,241,0.15)', color: '#818CF8', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 9999, padding: '2px 9px' }}>
                 Nouveau
               </span>
             </div>
-            <p style={{ fontSize: '0.78rem', color: '#6B7280', margin: '0 0 20px', lineHeight: 1.6 }}>
-              Importez un message audio de présentation (MP3, M4A, WAV — 15 Mo max). Un bouton &quot;Écouter&quot; apparaîtra sur votre carte publique.
+            <p style={{ fontSize: '0.78rem', color: '#6B7280', margin: '0 0 16px', lineHeight: 1.6 }}>
+              Écrivez votre message ou choisissez un modèle — l&apos;IA génère une voix naturelle en français, anglais ou arabe.
             </p>
 
-            <label style={{ display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', background: `rgba(99,102,241,${form.voice_message_enabled ? '0.08' : '0.03'})`, border: `1px solid ${form.voice_message_enabled ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 12, padding: '14px 16px', marginBottom: 20, transition: 'border-color .2s' }}>
-              <input
-                type="checkbox"
-                checked={form.voice_message_enabled}
+            {/* Toggle */}
+            <label style={{ display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', background: `rgba(99,102,241,${form.voice_message_enabled ? '0.08' : '0.03'})`, border: `1px solid ${form.voice_message_enabled ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 12, padding: '14px 16px', marginBottom: 20 }}>
+              <input type="checkbox" checked={form.voice_message_enabled}
                 onChange={e => setForm(f => ({ ...f, voice_message_enabled: e.target.checked }))}
-                style={{ width: 18, height: 18, accentColor: '#818CF8', cursor: 'pointer', flexShrink: 0 }}
-              />
+                style={{ width: 18, height: 18, accentColor: '#818CF8', cursor: 'pointer', flexShrink: 0 }} />
               <div>
                 <div style={{ fontWeight: 600, color: 'white', fontSize: '0.875rem' }}>Activer le message vocal</div>
-                <div style={{ fontSize: '0.72rem', color: '#6B7280', marginTop: 2 }}>Vos visiteurs pourront écouter votre présentation en 1 clic</div>
+                <div style={{ fontSize: '0.72rem', color: '#6B7280', marginTop: 2 }}>Un bouton &quot;Écouter&quot; apparaîtra sur votre carte publique</div>
               </div>
             </label>
 
-            {form.voice_message_enabled && (
-              form.voice_message_url ? (
+            {form.voice_message_enabled && (<>
+
+              {/* Templates */}
+              <p style={{ fontSize: '0.72rem', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>Modèles de messages</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
+                {TEMPLATES.map((t, i) => (
+                  <button key={i} type="button"
+                    onClick={() => setForm(f => ({ ...f, voice_message_text: t }))}
+                    style={{ textAlign: 'left', background: form.voice_message_text === t ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.03)', border: `1px solid ${form.voice_message_text === t ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.07)'}`, borderRadius: 10, padding: '10px 14px', color: '#9CA3AF', fontSize: '0.78rem', cursor: 'pointer', lineHeight: 1.5 }}>
+                    <span style={{ fontWeight: 700, color: '#818CF8', marginRight: 6 }}>#{i + 1}</span>{t.slice(0, 80)}…
+                  </button>
+                ))}
+              </div>
+
+              {/* Textarea */}
+              <div className={styles.field}>
+                <label className={styles.label}>Votre message (500 caractères max)</label>
+                <textarea className={styles.input} rows={4} style={{ resize: 'vertical' }}
+                  value={form.voice_message_text}
+                  onChange={e => setForm(f => ({ ...f, voice_message_text: e.target.value.slice(0, 500) }))}
+                  placeholder="Écrivez votre message de bienvenue..." />
+                <p style={{ fontSize: '0.7rem', color: form.voice_message_text.length > 450 ? '#F87171' : '#6B7280', marginTop: 4 }}>
+                  {form.voice_message_text.length}/500 caractères
+                </p>
+              </div>
+
+              {/* Voix */}
+              <div className={styles.field}>
+                <label className={styles.label}>Type de voix</label>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  {(['female','male'] as const).map(v => (
+                    <button key={v} type="button" onClick={() => setVoiceType(v)}
+                      style={{ flex: 1, padding: '10px', borderRadius: 10, border: `2px solid ${voiceType === v ? '#818CF8' : 'rgba(255,255,255,0.08)'}`, background: voiceType === v ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.03)', color: voiceType === v ? '#818CF8' : '#6B7280', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}>
+                      {v === 'female' ? '👩 Voix féminine' : '👨 Voix masculine'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Bouton générer */}
+              <button type="button" onClick={handleGenerateVoice}
+                disabled={generatingVoice || !form.voice_message_text?.trim()}
+                style={{ width: '100%', padding: '13px', borderRadius: 10, background: 'linear-gradient(135deg,#6C63FF,#4F46E5)', color: 'white', fontWeight: 700, fontSize: '0.9rem', border: 'none', cursor: generatingVoice || !form.voice_message_text?.trim() ? 'not-allowed' : 'pointer', opacity: !form.voice_message_text?.trim() ? 0.5 : 1, marginBottom: 12 }}>
+                {generatingVoice ? '⏳ Génération en cours...' : '🎙️ Générer l\'audio avec l\'IA'}
+              </button>
+
+              {/* Preview */}
+              {form.voice_message_url && (
                 <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px' }}>
-                  <p style={{ fontSize: '0.72rem', color: '#6B7280', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '.5px', fontWeight: 700 }}>Aperçu</p>
+                  <p style={{ fontSize: '0.72rem', color: '#6B7280', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '.5px', fontWeight: 700 }}>Aperçu audio</p>
                   <audio src={form.voice_message_url} controls style={{ width: '100%', borderRadius: 8 }} />
-                  <button
-                    type="button"
-                    onClick={handleVoiceDelete}
-                    style={{ marginTop: 12, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#F87171', borderRadius: 8, padding: '8px 16px', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', width: '100%' }}
-                  >
+                  <button type="button" onClick={handleVoiceDelete}
+                    style={{ marginTop: 12, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#F87171', borderRadius: 8, padding: '8px 16px', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', width: '100%' }}>
                     Supprimer le message vocal
                   </button>
                 </div>
-              ) : (
-                <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, border: '2px dashed rgba(99,102,241,0.35)', borderRadius: 12, padding: '28px 20px', cursor: uploadingVoice ? 'wait' : 'pointer', opacity: uploadingVoice ? 0.7 : 1 }}>
-                  <input type="file" accept=".mp3,.wav,.m4a,.ogg,audio/*" onChange={handleVoiceUpload} style={{ display: 'none' }} disabled={uploadingVoice} />
-                  <span style={{ fontSize: '2rem' }}>🎙️</span>
-                  <span style={{ fontWeight: 600, color: 'white', fontSize: '0.875rem' }}>
-                    {uploadingVoice ? 'Chargement...' : 'Importer un fichier audio'}
-                  </span>
-                  <span style={{ fontSize: '0.72rem', color: '#6B7280' }}>MP3, M4A, WAV · 15 Mo max</span>
-                </label>
-              )
-            )}
+              )}
+
+              {/* Import manuel */}
+              <div style={{ textAlign: 'center', margin: '12px 0 4px' }}>
+                <span style={{ fontSize: '0.72rem', color: '#4B5563' }}>ou</span>
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: '1px dashed rgba(255,255,255,0.15)', borderRadius: 10, padding: '12px', cursor: uploadingVoice ? 'wait' : 'pointer', opacity: uploadingVoice ? 0.6 : 1 }}>
+                <input type="file" accept=".mp3,.wav,.m4a,.ogg,audio/*" onChange={handleVoiceUpload} style={{ display: 'none' }} disabled={uploadingVoice} />
+                <span style={{ fontSize: '0.78rem', color: '#6B7280' }}>{uploadingVoice ? 'Chargement...' : '📁 Importer votre propre fichier MP3/WAV'}</span>
+              </label>
+            </>)}
           </div>
-        )}
+          );
+        })()}
 
         {/* ---- Mobile Money ---- */}
         {activeSection === 'section-paiement' && (
