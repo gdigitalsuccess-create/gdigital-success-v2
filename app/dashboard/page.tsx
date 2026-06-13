@@ -1564,7 +1564,10 @@ Langue de travail : [français, anglais...]`}
             ].map(({ key, label, logo, placeholder }) => (
               <div key={key} className={styles.field} style={{ marginBottom: 14 }}>
                 <label className={styles.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <img src={logo} alt={label} height={20} style={{ borderRadius: 4, objectFit: 'fill' }} />{label}
+                  <span style={{ display: 'inline-flex', width: 56, height: 20, flexShrink: 0, overflow: 'hidden', borderRadius: 3 }}>
+                    <img src={logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  </span>
+                  {label}
                 </label>
                 <input
                   className={styles.input}

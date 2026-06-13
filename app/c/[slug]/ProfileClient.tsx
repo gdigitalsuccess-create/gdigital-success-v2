@@ -551,10 +551,12 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
                 href={p.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: 48, borderRadius: 12, background: 'white', border: '1px solid #e5e7eb', textDecoration: 'none', overflow: 'hidden' }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: 48, borderRadius: 12, background: 'white', border: '1px solid #e5e7eb', textDecoration: 'none' }}
                 aria-label={`Payer via ${p.label}`}
               >
-                <img src={p.logo} alt={p.label} style={{ height: 32, width: 'auto', objectFit: 'contain' }} />
+                <span style={{ display: 'inline-flex', width: 120, height: 36, overflow: 'hidden', flexShrink: 0 }}>
+                  <img src={p.logo} alt={p.label} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                </span>
               </a>
             ))}
 
