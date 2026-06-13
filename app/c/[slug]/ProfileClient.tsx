@@ -537,24 +537,24 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
 
             {/* Mobile Money */}
             {[
-              { url: profile.wave_url,         label: 'Wave',         logo: '/assets/payment/wave.svg' },
-              { url: profile.orange_money_url,  label: 'Orange Money', logo: '/assets/payment/orange-money.svg' },
-              { url: profile.mtn_url,           label: 'MTN MoMo',     logo: '/assets/payment/mtn.svg' },
-              { url: profile.cinetpay_url,      label: 'CinetPay',     logo: '/assets/payment/cinetpay.svg' },
-              { url: profile.airtel_money_url,  label: 'Airtel Money', logo: '/assets/payment/airtel-money.svg' },
-              { url: profile.moov_money_url,    label: 'Moov Money',   logo: '/assets/payment/moov-money.svg' },
-              { url: profile.wise_url,          label: 'Wise',         logo: '/assets/payment/wise.svg' },
-              { url: profile.paypal_url,        label: 'PayPal',       logo: '/assets/payment/paypal.svg' },
+              { url: profile.wave_url,          label: 'Wave',         logo: '/assets/payment/wave.png' },
+              { url: profile.orange_money_url,  label: 'Orange Money', logo: '/assets/payment/orange-money.jpeg' },
+              { url: profile.mtn_url,           label: 'MTN MoMo',     logo: '/assets/payment/mtn.png' },
+              { url: profile.cinetpay_url,      label: 'CinetPay',     logo: '/assets/payment/cinetpay.jpg' },
+              { url: profile.airtel_money_url,  label: 'Airtel Money', logo: '/assets/payment/airtel-money.webp' },
+              { url: profile.moov_money_url,    label: 'Moov Money',   logo: '/assets/payment/moov-money.png' },
+              { url: profile.wise_url,          label: 'Wise',         logo: '/assets/payment/wise.jpg' },
+              { url: profile.paypal_url,        label: 'PayPal',       logo: '/assets/payment/paypal.webp' },
             ].filter(p => p.url).map(p => (
               <a
                 key={p.label}
                 href={p.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ display: 'block', borderRadius: 12, overflow: 'hidden', textDecoration: 'none', width: '100%' }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: 56, borderRadius: 12, background: 'white', border: '1px solid #e5e7eb', textDecoration: 'none', padding: '8px 16px', boxSizing: 'border-box' }}
                 aria-label={`Payer via ${p.label}`}
               >
-                <img src={p.logo} alt={`Payer via ${p.label}`} style={{ width: '100%', height: 48, objectFit: 'fill', display: 'block' }} />
+                <img src={p.logo} alt={p.label} style={{ maxHeight: 38, maxWidth: '75%', objectFit: 'contain' }} />
               </a>
             ))}
 
