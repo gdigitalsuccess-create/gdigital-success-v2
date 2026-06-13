@@ -283,18 +283,17 @@ export default function CartesPage() {
   async function uploadLogo(file: File) {
     if (!themeModal) return;
     setUploadingLogo(true);
-    const ext = file.name.split('.').pop();
-    const path = `${themeModal.slug}/logo.${ext}`;
-    const { data, error } = await supabase.storage.from('carte-images').upload(path, file, { upsert: true });
-    if (error) {
-      alert(`Erreur upload logo : ${error.message}`);
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('slug', themeModal.slug);
+    const res = await fetch('/api/admin/upload-logo', { method: 'POST', body: fd });
+    const json = await res.json();
+    if (!res.ok) {
+      alert(`Erreur upload logo : ${json.error}`);
       setUploadingLogo(false);
       return;
     }
-    if (data) {
-      const { data: { publicUrl } } = supabase.storage.from('carte-images').getPublicUrl(path);
-      setTheme(t => ({ ...t, logo_url: publicUrl }));
-    }
+    setTheme(t => ({ ...t, logo_url: json.publicUrl }));
     setUploadingLogo(false);
   }
 
@@ -585,16 +584,17 @@ export default function CartesPage() {
                               setUploadingLogo(true);
                               const ext = file.name.split('.').pop();
                               const path = `${form.slug}/logo.${ext}`;
-                              const { data, error: upErr } = await supabase.storage.from('carte-images').upload(path, file, { upsert: true });
-                              if (upErr) {
-                                alert(`Erreur upload logo : ${upErr.message}`);
+                              const fd2 = new FormData();
+                              fd2.append('file', file);
+                              fd2.append('slug', form.slug);
+                              const upRes = await fetch('/api/admin/upload-logo', { method: 'POST', body: fd2 });
+                              const upJson = await upRes.json();
+                              if (!upRes.ok) {
+                                alert(`Erreur upload logo : ${upJson.error}`);
                                 setUploadingLogo(false);
                                 return;
                               }
-                              if (data) {
-                                const { data: { publicUrl } } = supabase.storage.from('carte-images').getPublicUrl(path);
-                                setTheme(t => ({ ...t, logo_url: publicUrl }));
-                              }
+                              setTheme(t => ({ ...t, logo_url: upJson.publicUrl }));
                               setUploadingLogo(false);
                             }} />
                         </label>
