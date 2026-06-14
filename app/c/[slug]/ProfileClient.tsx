@@ -236,6 +236,9 @@ const TRANSLATIONS = {
     videos:          'Vidéos',
     links:           'Liens',
     shareWhatsApp:   'Partager cette carte sur WhatsApp',
+    shareCard:       'Partager cette carte',
+    copyLink:        'Copier le lien',
+    copied:          'Lien copié !',
     leaveDetails:    'Laisser mes coordonnées',
     qrTitle:         'Partager ma carte',
     qrCaption:       'Scannez ce QR code pour accéder à ma carte digitale',
@@ -259,6 +262,9 @@ const TRANSLATIONS = {
     videos:          'Videos',
     links:           'Links',
     shareWhatsApp:   'Share this card on WhatsApp',
+    shareCard:       'Share this card',
+    copyLink:        'Copy link',
+    copied:          'Link copied!',
     leaveDetails:    'Leave my details',
     qrTitle:         'Share my card',
     qrCaption:       'Scan this QR code to access my digital card',
@@ -282,6 +288,9 @@ const TRANSLATIONS = {
     videos:          'الفيديوهات',
     links:           'الروابط',
     shareWhatsApp:   'شارك هذه البطاقة عبر واتساب',
+    shareCard:       'شارك هذه البطاقة',
+    copyLink:        'نسخ الرابط',
+    copied:          'تم النسخ!',
     leaveDetails:    'ترك بياناتي',
     qrTitle:         'شارك بطاقتي',
     qrCaption:       'امسح رمز QR للوصول إلى بطاقتي الرقمية',
@@ -314,6 +323,8 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
   const [showLeadModal, setShowLeadModal] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [showSplash, setShowSplash] = useState(!!(profile.voice_message_enabled && profile.voice_message_url));
+  const [showSharePanel, setShowSharePanel] = useState(false);
+  const [copied, setCopied] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   function dismissSplash() {
@@ -665,20 +676,73 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
               </div>
             )}
 
-            {/* WhatsApp Auto-message share */}
-            {profile.whatsapp_auto_enabled && (
-              <a
-                href={`https://wa.me/?text=${encodeURIComponent(profile.whatsapp_auto_message || `Découvrez la carte digitale de ${profile.name} 👇\nhttps://digitalsucces.tech/c/${profile.slug}`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', padding: '13px 20px', borderRadius: 12, background: '#25D366', color: '#fff', fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none', letterSpacing: '.01em' }}
-              >
-                <svg viewBox="0 0 24 24" fill="white" width="20" height="20">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z" />
-                </svg>
-                {T.shareWhatsApp}
-              </a>
-            )}
+            {/* Bouton Partager */}
+            {profile.whatsapp_auto_enabled && (() => {
+              const shareText = profile.whatsapp_auto_message || `Découvrez la carte digitale de ${profile.name} 👇\n${profileUrl}`;
+              const platforms = [
+                { label: 'WhatsApp',  color: '#25D366', href: `https://wa.me/?text=${encodeURIComponent(shareText)}`, svg: <svg viewBox="0 0 24 24" fill="white" width="22" height="22"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg> },
+                { label: 'Facebook',  color: '#1877F2', href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(profileUrl)}`, svg: <svg viewBox="0 0 24 24" fill="white" width="22" height="22"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg> },
+                { label: 'LinkedIn',  color: '#0A66C2', href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(profileUrl)}`, svg: <svg viewBox="0 0 24 24" fill="white" width="22" height="22"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg> },
+                { label: 'Twitter/X', color: '#000000', href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`, svg: <svg viewBox="0 0 24 24" fill="white" width="22" height="22"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> },
+                { label: 'Telegram',  color: '#2AABEE', href: `https://t.me/share/url?url=${encodeURIComponent(profileUrl)}&text=${encodeURIComponent(shareText)}`, svg: <svg viewBox="0 0 24 24" fill="white" width="22" height="22"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg> },
+              ];
+
+              async function handleShare() {
+                if (typeof navigator !== 'undefined' && navigator.share) {
+                  try {
+                    await navigator.share({ title: profile.name, text: shareText, url: profileUrl });
+                    return;
+                  } catch {}
+                }
+                setShowSharePanel(p => !p);
+              }
+
+              async function handleCopy() {
+                await navigator.clipboard.writeText(profileUrl);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <button
+                    onClick={handleShare}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', padding: '13px 20px', borderRadius: 12, background: 'linear-gradient(135deg, var(--c-primary), var(--c-secondary))', color: '#fff', fontWeight: 700, fontSize: '0.9rem', border: 'none', cursor: 'pointer' }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" width="18" height="18">
+                      <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                    </svg>
+                    {T.shareCard}
+                  </button>
+
+                  {showSharePanel && (
+                    <div style={{ background: 'var(--c-card)', borderRadius: 14, padding: '14px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
+                        {platforms.map(p => (
+                          <a key={p.label} href={p.href} target="_blank" rel="noopener noreferrer"
+                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, textDecoration: 'none' }}>
+                            <div style={{ width: 44, height: 44, borderRadius: 12, background: p.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              {p.svg}
+                            </div>
+                            <span style={{ color: 'var(--c-text)', fontSize: '0.62rem', opacity: 0.7, textAlign: 'center', lineHeight: 1.2 }}>{p.label}</span>
+                          </a>
+                        ))}
+                      </div>
+                      <button onClick={handleCopy}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', padding: '10px', borderRadius: 10, background: copied ? '#22C55E22' : 'rgba(255,255,255,0.07)', color: copied ? '#22C55E' : 'var(--c-text)', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15">
+                          {copied
+                            ? <polyline points="20 6 9 17 4 12"/>
+                            : <><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></>}
+                        </svg>
+                        {copied ? T.copied : T.copyLink}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Mobile Money */}
             {[
