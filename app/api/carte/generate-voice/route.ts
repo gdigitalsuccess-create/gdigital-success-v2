@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
 
 const VOICE_IDS = {
   female: 'EXAVITQu4vr4xnSDxMaL',
@@ -16,9 +15,11 @@ function getAdmin() {
 }
 
 export async function POST(req: NextRequest) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('sb-access-token')?.value;
+  const token = req.headers.get('Authorization')?.replace('Bearer ', '');
   if (!token) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+  const supabaseCheck = getAdmin();
+  const { data: { user } } = await supabaseCheck.auth.getUser(token);
+  if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
 
   const { text, voice, slug } = await req.json();
   if (!text?.trim() || !slug) return NextResponse.json({ error: 'text et slug requis' }, { status: 400 });

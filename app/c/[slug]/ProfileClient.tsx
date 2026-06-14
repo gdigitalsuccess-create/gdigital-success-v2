@@ -92,6 +92,7 @@ export type Profile = {
   paypal_url?: string;
   voice_message_url?: string;
   voice_message_enabled?: boolean;
+  card_language?: string;
 };
 
 function getLuminance(hex: string): number {

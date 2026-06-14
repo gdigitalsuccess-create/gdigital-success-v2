@@ -98,6 +98,7 @@ async function getProfile(slug: string): Promise<Profile | null> {
     paypal_url:            data.paypal_url            ?? undefined,
     voice_message_url:     data.voice_message_url     ?? undefined,
     voice_message_enabled: data.voice_message_enabled ?? false,
+    card_language:         data.card_language         ?? 'fr',
     videos: (src.carte_videos ?? [])
       .sort((a: { position: number }, b: { position: number }) => a.position - b.position)
       .map((v: { id: string; type: string; url: string; platform?: string; caption?: string; position: number }) => ({

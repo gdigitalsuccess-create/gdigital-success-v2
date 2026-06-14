@@ -656,9 +656,10 @@ export default function DashboardPage() {
     if (!profile || !form.voice_message_text?.trim()) return;
     setGeneratingVoice(true);
     setMsg(null);
+    const token = await getToken();
     const res = await fetch('/api/carte/generate-voice', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ text: form.voice_message_text, voice: voiceType, slug: profile.slug }),
     });
     const json = await res.json();
