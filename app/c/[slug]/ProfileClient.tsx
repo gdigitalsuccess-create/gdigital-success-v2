@@ -237,6 +237,13 @@ const TRANSLATIONS = {
     links:           'Liens',
     shareWhatsApp:   'Partager cette carte sur WhatsApp',
     leaveDetails:    'Laisser mes coordonnées',
+    qrTitle:         'Partager ma carte',
+    qrCaption:       'Scannez ce QR code pour accéder à ma carte digitale',
+    pushBtn:         (name: string) => `Recevoir les actualités de ${name}`,
+    pushLoading:     'Activation...',
+    pushSuccess:     'Notifications activées',
+    pushIosHint:     (name: string) => `Pour recevoir les actualités de ${name}, ajoutez cette page à votre écran d'accueil`,
+    pushIosAction:   '(Partager → Sur l\'écran d\'accueil)',
   },
   en: {
     tapToContinue:   'Tap to continue',
@@ -253,6 +260,13 @@ const TRANSLATIONS = {
     links:           'Links',
     shareWhatsApp:   'Share this card on WhatsApp',
     leaveDetails:    'Leave my details',
+    qrTitle:         'Share my card',
+    qrCaption:       'Scan this QR code to access my digital card',
+    pushBtn:         (name: string) => `Get updates from ${name}`,
+    pushLoading:     'Activating...',
+    pushSuccess:     'Notifications enabled',
+    pushIosHint:     (name: string) => `To get updates from ${name}, add this page to your home screen`,
+    pushIosAction:   '(Share → Add to Home Screen)',
   },
   ar: {
     tapToContinue:   'اضغط للمتابعة',
@@ -269,6 +283,13 @@ const TRANSLATIONS = {
     links:           'الروابط',
     shareWhatsApp:   'شارك هذه البطاقة عبر واتساب',
     leaveDetails:    'ترك بياناتي',
+    qrTitle:         'شارك بطاقتي',
+    qrCaption:       'امسح رمز QR للوصول إلى بطاقتي الرقمية',
+    pushBtn:         (name: string) => `تلقّ أخبار ${name}`,
+    pushLoading:     'جارٍ التفعيل...',
+    pushSuccess:     'تم تفعيل الإشعارات',
+    pushIosHint:     (name: string) => `لتلقّي أخبار ${name}، أضف هذه الصفحة إلى شاشتك الرئيسية`,
+    pushIosAction:   '(مشاركة ← إضافة إلى الشاشة الرئيسية)',
   },
 };
 
@@ -596,7 +617,7 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                       <polyline points="14 2 14 8 20 8" />
                     </svg>
-                    {profile.label_documents || T.documents}
+                    {(lang === 'fr' && profile.label_documents) ? profile.label_documents : T.documents}
                     {openSection === 'documents' ? <ChevronUp /> : <ChevronDown />}
                   </button>
                 )}
@@ -611,7 +632,7 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
                       <rect x="14" y="14" width="7" height="7" />
                       <rect x="3" y="14" width="7" height="7" />
                     </svg>
-                    {profile.portfolioTitle || T.portfolio}
+                    {(lang === 'fr' && profile.portfolioTitle) ? profile.portfolioTitle : T.portfolio}
                     {openSection === 'portfolio' ? <ChevronUp /> : <ChevronDown />}
                   </button>
                 )}
@@ -624,7 +645,7 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
                       <polygon points="23 7 16 12 23 17 23 7" />
                       <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
                     </svg>
-                    {profile.label_videos || T.videos}
+                    {(lang === 'fr' && profile.label_videos) ? profile.label_videos : T.videos}
                     {openSection === 'videos' ? <ChevronUp /> : <ChevronDown />}
                   </button>
                 )}
@@ -693,7 +714,7 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
             </button>
 
             {/* Tertiaire : push notifications */}
-            <PushSubscribeButton profileId={profile.id} profileName={profile.name} />
+            <PushSubscribeButton profileId={profile.id} profileName={profile.name.split(' ')[0]} translations={{ btn: T.pushBtn, loading: T.pushLoading, success: T.pushSuccess, iosHint: T.pushIosHint, iosAction: T.pushIosAction }} />
           </div>
 
           {/* Accordéon : Réseaux sociaux */}
@@ -823,11 +844,11 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
 
         {/* QR Code */}
         <div className={styles.qrCard}>
-          <p className={styles.qrLabel}>Partager ma carte</p>
+          <p className={styles.qrLabel}>{T.qrTitle}</p>
           <div className={styles.qrBox}>
             <img src={qrDataUrl} alt="QR Code" width={160} height={160} />
           </div>
-          <p className={styles.qrCaption}>Scannez ce QR code pour accéder à ma carte digitale</p>
+          <p className={styles.qrCaption}>{T.qrCaption}</p>
           <p className={styles.qrUrl}>{profileUrl}</p>
         </div>
 
