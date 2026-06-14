@@ -1178,7 +1178,7 @@ export default function DashboardPage() {
           <div className={styles.sidebarDivider} />
           {([
             { id: 'section-liens',     icon: <Link size={15}/>,           label: 'Liens' },
-            { id: 'section-whatsapp',  icon: <MessageCircle size={15}/>,  label: 'WhatsApp Auto' },
+            { id: 'section-whatsapp',  icon: <MessageCircle size={15}/>,  label: 'Partager' },
             { id: 'section-paiement',  icon: <CreditCard size={15}/>,     label: 'Mobile Money' },
             { id: 'section-vocal',     icon: <Mic size={15}/>,            label: 'Message Vocal' },
             { id: 'section-equipe',    icon: <Users size={15}/>,          label: 'Équipe' },
@@ -1233,7 +1233,7 @@ export default function DashboardPage() {
         const SECTION_LABELS: Record<string, string> = {
           'section-profil': 'Profil', 'section-contact': 'Contact', 'section-rdv': 'Agenda & RDV',
           'section-labels': 'Tags & Catégories', 'section-socials': 'Réseaux sociaux',
-          'section-liens': 'Liens', 'section-whatsapp': 'WhatsApp Auto', 'section-paiement': 'Mobile Money',
+          'section-liens': 'Liens', 'section-whatsapp': 'Partager', 'section-paiement': 'Mobile Money',
           'section-vocal': 'Message Vocal', 'section-equipe': 'Équipe', 'section-documents': 'Documents',
           'section-portfolio': 'Réalisations', 'section-videos': 'Vidéos', 'section-agent-ia': 'Assistant IA',
           'section-leads': 'Contacts reçus', 'section-chat-logs': 'Conversations IA',
@@ -1833,29 +1833,29 @@ Langue de travail : [français, anglais...]`}
           </div>
         )}
 
-        {/* ---- WhatsApp Auto-message ---- */}
+        {/* ---- Bouton Partager ---- */}
         {activeSection === 'section-whatsapp' && (
           <div className={styles.section}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-              <p className={styles.sectionTitle} style={{ marginBottom: 0 }}>WhatsApp Auto-message</p>
-              <span style={{ fontSize: '0.62rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', background: 'rgba(37,211,102,0.15)', color: '#25D366', border: '1px solid rgba(37,211,102,0.3)', borderRadius: 9999, padding: '2px 9px' }}>
+              <p className={styles.sectionTitle} style={{ marginBottom: 0 }}>Bouton de partage</p>
+              <span style={{ fontSize: '0.62rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', background: 'rgba(99,102,241,0.15)', color: '#818CF8', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 9999, padding: '2px 9px' }}>
                 Nouveau
               </span>
             </div>
             <p style={{ fontSize: '0.78rem', color: '#6B7280', margin: '0 0 20px', lineHeight: 1.6 }}>
-              Affiche un bouton sur votre carte publique permettant aux visiteurs d&apos;ouvrir WhatsApp avec un message pré-rempli contenant le lien de votre carte.
+              Affiche un bouton sur votre carte publique. Sur mobile, le menu de partage natif s&apos;ouvre (WhatsApp, Instagram, TikTok, Snapchat...). Sur desktop, un panel avec WhatsApp, Facebook, LinkedIn, Twitter et Telegram.
             </p>
 
-            <label style={{ display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', background: 'rgba(37,211,102,0.05)', border: `1px solid ${form.whatsapp_auto_enabled ? 'rgba(37,211,102,0.35)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 12, padding: '14px 16px', marginBottom: 16, transition: 'border-color .2s' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', background: 'rgba(99,102,241,0.05)', border: `1px solid ${form.whatsapp_auto_enabled ? 'rgba(99,102,241,0.35)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 12, padding: '14px 16px', marginBottom: 16, transition: 'border-color .2s' }}>
               <input
                 type="checkbox"
                 checked={form.whatsapp_auto_enabled}
                 onChange={e => setForm(f => ({ ...f, whatsapp_auto_enabled: e.target.checked }))}
-                style={{ width: 18, height: 18, accentColor: '#25D366', cursor: 'pointer', flexShrink: 0 }}
+                style={{ width: 18, height: 18, accentColor: '#818CF8', cursor: 'pointer', flexShrink: 0 }}
               />
               <div>
-                <div style={{ fontWeight: 600, color: 'white', fontSize: '0.875rem' }}>Activer le bouton WhatsApp</div>
-                <div style={{ fontSize: '0.72rem', color: '#6B7280', marginTop: 2 }}>Les visiteurs pourront partager votre carte via WhatsApp en un clic</div>
+                <div style={{ fontWeight: 600, color: 'white', fontSize: '0.875rem' }}>Activer le bouton de partage</div>
+                <div style={{ fontSize: '0.72rem', color: '#6B7280', marginTop: 2 }}>Les visiteurs pourront partager votre carte sur toutes les plateformes</div>
               </div>
             </label>
 
