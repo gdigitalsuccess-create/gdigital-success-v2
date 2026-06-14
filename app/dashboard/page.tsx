@@ -4,9 +4,9 @@ import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import styles from './dashboard.module.css';
 import {
-  User as IconUser, Phone, Calendar, Tag, Share2, Globe, MessageCircle,
+  User as IconUser, Phone, Calendar, Tag, Share2, MessageCircle,
   CreditCard, Mic, Users, FileText, Image, Video, Bot, Inbox, Bell,
-  Mail, Star, Lock, Link, ChevronRight,
+  Mail, Star, Lock, Link,
 } from 'lucide-react';
 import MiniCardPreview from './MiniCardPreview';
 import MemberDashboard from './MemberDashboard';
@@ -236,7 +236,7 @@ export default function DashboardPage() {
   const [form, setForm]               = useState(EMPTY_FORM);
   const [saving, setSaving]           = useState(false);
   const [msg, setMsg]                 = useState<{ text: string; type: 'success' | 'error' } | null>(null);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [, setUploadingPhoto] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingCoverVideo, setUploadingCoverVideo] = useState(false);
   const [cropState, setCropState] = useState<{ file: File; type: 'photo' | 'cover' } | null>(null);
@@ -1313,14 +1313,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Badge plan — profil uniquement */}
-      {activeSection === 'section-profil' && (
-        <div style={{ display: 'flex', justifyContent: 'center', margin: '32px 0 16px' }}>
-          <span className={styles.planBadge} style={{ background: planStyle.bg, color: planStyle.color }}>
-            Plan {plan}
-          </span>
-        </div>
-      )}
 
       {/* ---- Section Mon Plan ---- */}
       {(() => {
@@ -2847,6 +2839,7 @@ Langue de travail : [français, anglais...]`}
         <CropModal
           file={cropState.file}
           aspect={cropState.type === 'photo' ? 1 : 3}
+          circular={cropState.type === 'photo'}
           onConfirm={handleCropConfirm}
           onCancel={() => setCropState(null)}
         />

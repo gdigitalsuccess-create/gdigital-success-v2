@@ -4,13 +4,14 @@ import { useRef, useState, useEffect } from 'react';
 type Props = {
   file: File;
   aspect: number; // largeur/hauteur — 1=carré, 3=bannière
+  circular?: boolean; // aperçu circulaire pour photo de profil
   onConfirm: (blob: Blob) => void;
   onCancel: () => void;
 };
 
 const DISPLAY = 320; // taille de la zone d'affichage (toujours carrée)
 
-export default function CropModal({ file, aspect, onConfirm, onCancel }: Props) {
+export default function CropModal({ file, aspect, circular = false, onConfirm, onCancel }: Props) {
   const CROP_W = DISPLAY;
   const CROP_H = Math.round(DISPLAY / aspect);
   const CROP_Y0 = Math.round((DISPLAY - CROP_H) / 2); // centré verticalement
@@ -161,26 +162,30 @@ export default function CropModal({ file, aspect, onConfirm, onCancel }: Props) 
           )}
 
           {/* Bordure de la zone de recadrage */}
-          <div style={{
-            position: 'absolute',
-            left: 0,
-            top: CROP_Y0,
-            width: CROP_W,
-            height: CROP_H,
-            border: '2px solid rgba(0,207,255,0.9)',
-            boxSizing: 'border-box',
-            pointerEvents: 'none',
-          }}>
-            {/* Coins */}
-            {[
-              { top: -3, left: -3 } as React.CSSProperties,
-              { top: -3, right: -3 } as React.CSSProperties,
-              { bottom: -3, left: -3 } as React.CSSProperties,
-              { bottom: -3, right: -3 } as React.CSSProperties,
-            ].map((s, i) => (
-              <div key={i} style={{ position: 'absolute', width: 10, height: 10, background: '#00CFFF', borderRadius: 2, ...s }} />
-            ))}
-          </div>
+          {circular ? (
+            <>
+              {/* Masque sombre hors du cercle */}
+              <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none',
+                background: `radial-gradient(circle ${CROP_W/2}px at 50% ${CROP_Y0 + CROP_H/2}px, transparent ${CROP_W/2}px, rgba(0,0,0,0.65) ${CROP_W/2}px)` }} />
+              {/* Cercle lumineux */}
+              <div style={{ position: 'absolute', left: 0, top: CROP_Y0, width: CROP_W, height: CROP_H,
+                border: '2px solid rgba(108,99,255,0.9)', borderRadius: '50%', boxSizing: 'border-box', pointerEvents: 'none' }} />
+            </>
+          ) : (
+            <div style={{
+              position: 'absolute', left: 0, top: CROP_Y0, width: CROP_W, height: CROP_H,
+              border: '2px solid rgba(0,207,255,0.9)', boxSizing: 'border-box', pointerEvents: 'none',
+            }}>
+              {[
+                { top: -3, left: -3 } as React.CSSProperties,
+                { top: -3, right: -3 } as React.CSSProperties,
+                { bottom: -3, left: -3 } as React.CSSProperties,
+                { bottom: -3, right: -3 } as React.CSSProperties,
+              ].map((s, i) => (
+                <div key={i} style={{ position: 'absolute', width: 10, height: 10, background: '#00CFFF', borderRadius: 2, ...s }} />
+              ))}
+            </div>
+          )}
         </div>
 
         <p style={{ color: '#888', fontSize: 11, textAlign: 'center', margin: '0 0 12px' }}>
