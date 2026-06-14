@@ -241,17 +241,13 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
   const [openSection, setOpenSection] = useState<string | null>(null);
   const [showLeadModal, setShowLeadModal] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [audioPlaying, setAudioPlaying] = useState(false);
   const [showSplash, setShowSplash] = useState(!!(profile.voice_message_enabled && profile.voice_message_url));
   const audioRef = useRef<HTMLAudioElement>(null);
 
   function dismissSplash() {
     setShowSplash(false);
     setTimeout(() => {
-      if (audioRef.current) {
-        audioRef.current.play().catch(() => {});
-        setAudioPlaying(true);
-      }
+      audioRef.current?.play().catch(() => {});
     }, 300);
   }
 
@@ -312,6 +308,11 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
 
   return (
     <>
+    {/* Audio stable hors du main — ne sera jamais interrompu par un re-render */}
+    {profile.voice_message_enabled && profile.voice_message_url && (
+      <audio ref={audioRef} src={profile.voice_message_url} />
+    )}
+
     {showSplash && (
       <div
         onClick={dismissSplash}
@@ -351,7 +352,7 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
             </svg>
           </div>
           <span style={{ color: textColor, opacity: 0.6, fontSize: '0.82rem', letterSpacing: '0.5px' }}>
-            Appuyez pour écouter
+            Appuyez pour continuer
           </span>
         </div>
         <style>{`
@@ -501,14 +502,6 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
 
           {/* Action buttons */}
           <div className={styles.actionButtons}>
-            {/* Audio message vocal — lancé automatiquement via splash screen */}
-            {profile.voice_message_enabled && profile.voice_message_url && (
-              <audio
-                ref={audioRef}
-                src={profile.voice_message_url}
-                onEnded={() => setAudioPlaying(false)}
-              />
-            )}
 
             {/* Primaire : Prendre RDV */}
             {profile.rdv && (
