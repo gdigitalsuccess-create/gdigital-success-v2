@@ -242,7 +242,18 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
   const [showLeadModal, setShowLeadModal] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [audioPlaying, setAudioPlaying] = useState(false);
+  const [showSplash, setShowSplash] = useState(!!(profile.voice_message_enabled && profile.voice_message_url));
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  function dismissSplash() {
+    setShowSplash(false);
+    setTimeout(() => {
+      if (audioRef.current) {
+        audioRef.current.play().catch(() => {});
+        setAudioPlaying(true);
+      }
+    }, 300);
+  }
 
   const portfolioItems = profile.portfolio ?? [];
   const openLightbox = (index: number) => setLightboxIndex(index);
@@ -300,6 +311,57 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
   const heroHasMedia = !!(profile.photo || profile.cover || profile.coverVideo);
 
   return (
+    <>
+    {showSplash && (
+      <div
+        onClick={dismissSplash}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: bgColor,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          gap: 20, cursor: 'pointer', userSelect: 'none',
+        }}
+      >
+        {profile.photo && (
+          <img
+            src={profile.photo}
+            alt={profile.name}
+            style={{ width: 120, height: 120, borderRadius: '50%', objectFit: 'cover', border: `3px solid ${primaryColor}` }}
+          />
+        )}
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ color: textColor, fontWeight: 700, fontSize: '1.4rem', fontFamily: `'${fontHeading}', sans-serif` }}>
+            {profile.name}
+          </div>
+          <div style={{ color: primaryColor, fontSize: '0.95rem', marginTop: 4 }}>
+            {profile.title}{profile.company ? ` · ${profile.company}` : ''}
+          </div>
+        </div>
+        <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: '50%',
+            background: primaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            animation: 'splashPulse 1.5s ease-in-out infinite',
+          }}>
+            <svg viewBox="0 0 24 24" fill="white" width="22" height="22">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+          </div>
+          <span style={{ color: textColor, opacity: 0.6, fontSize: '0.82rem', letterSpacing: '0.5px' }}>
+            Appuyez pour écouter
+          </span>
+        </div>
+        <style>{`
+          @keyframes splashPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.12); opacity: 0.8; }
+          }
+        `}</style>
+      </div>
+    )}
     <main className={styles.page} style={themeVars}>
       <VisitTracker profileId={profile.id} />
 
@@ -439,33 +501,13 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
 
           {/* Action buttons */}
           <div className={styles.actionButtons}>
-            {/* Message Vocal */}
+            {/* Audio message vocal — lancé automatiquement via splash screen */}
             {profile.voice_message_enabled && profile.voice_message_url && (
-              <>
-                <audio
-                  ref={audioRef}
-                  src={profile.voice_message_url}
-                  onEnded={() => setAudioPlaying(false)}
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!audioRef.current) return;
-                    if (audioPlaying) {
-                      audioRef.current.pause();
-                      audioRef.current.currentTime = 0;
-                      setAudioPlaying(false);
-                    } else {
-                      audioRef.current.play();
-                      setAudioPlaying(true);
-                    }
-                  }}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', padding: '14px 20px', borderRadius: 12, background: audioPlaying ? 'linear-gradient(135deg,#7C3AED,#5B21B6)' : 'linear-gradient(135deg,#6C63FF,#4F46E5)', color: '#fff', fontWeight: 700, fontSize: '0.9rem', border: 'none', cursor: 'pointer' }}
-                >
-                  <span style={{ fontSize: '1.1rem' }}>{audioPlaying ? '⏹' : '🎙️'}</span>
-                  {audioPlaying ? 'Arrêter le message' : `Écouter le message de ${profile.name.split(' ')[0]}`}
-                </button>
-              </>
+              <audio
+                ref={audioRef}
+                src={profile.voice_message_url}
+                onEnded={() => setAudioPlaying(false)}
+              />
             )}
 
             {/* Primaire : Prendre RDV */}
@@ -801,5 +843,6 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
         </div>
       )}
     </main>
+    </>
   );
 }
