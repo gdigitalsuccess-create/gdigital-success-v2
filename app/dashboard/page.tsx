@@ -6,7 +6,7 @@ import styles from './dashboard.module.css';
 import {
   User as IconUser, Phone, Calendar, Tag, Share2, MessageCircle,
   CreditCard, Mic, Users, FileText, Image, Video, Bot, Inbox, Bell,
-  Mail, Star, Lock, Link,
+  Mail, Star, Lock, Link, Send,
 } from 'lucide-react';
 import MiniCardPreview from './MiniCardPreview';
 import MemberDashboard from './MemberDashboard';
@@ -37,6 +37,8 @@ type Profile = {
   telegram: string;
   whatsapp_auto_enabled: boolean;
   whatsapp_auto_message: string;
+  followup_enabled: boolean;
+  followup_message: string;
   wave_url: string;
   orange_money_url: string;
   mtn_url: string;
@@ -159,6 +161,8 @@ const EMPTY_FORM = {
   instagram: '', tiktok: '', facebook: '', linkedin: '', youtube: '', twitter: '', snapchat: '', telegram: '',
   whatsapp_auto_enabled: false,
   whatsapp_auto_message: '',
+  followup_enabled: false,
+  followup_message: '',
   wave_url: '',
   orange_money_url: '',
   mtn_url: '',
@@ -256,7 +260,7 @@ export default function DashboardPage() {
 
   // Active section (tab navigation)
   const [activeSection, setActiveSection] = useState('section-profil');
-  const FORM_SECTIONS = new Set(['section-profil','section-contact','section-rdv','section-labels','section-socials','section-agent-ia','section-whatsapp','section-paiement','section-vocal']);
+  const FORM_SECTIONS = new Set(['section-profil','section-contact','section-rdv','section-labels','section-socials','section-agent-ia','section-whatsapp','section-paiement','section-followup','section-vocal']);
   const PREVIEW_SECTIONS = new Set(['section-profil','section-contact','section-rdv','section-labels','section-socials','section-liens','section-agent-ia']);
 
   // Password change state
@@ -459,6 +463,8 @@ export default function DashboardPage() {
         telegram:               data.telegram               ?? '',
         whatsapp_auto_enabled:  data.whatsapp_auto_enabled  ?? false,
         whatsapp_auto_message:  data.whatsapp_auto_message  ?? '',
+        followup_enabled:       data.followup_enabled       ?? false,
+        followup_message:       data.followup_message       ?? '',
         wave_url:               data.wave_url               ?? '',
         orange_money_url:       data.orange_money_url       ?? '',
         mtn_url:                data.mtn_url                ?? '',
@@ -1180,6 +1186,7 @@ export default function DashboardPage() {
             { id: 'section-liens',     icon: <Link size={15}/>,           label: 'Liens' },
             { id: 'section-whatsapp',  icon: <MessageCircle size={15}/>,  label: 'Partager' },
             { id: 'section-paiement',  icon: <CreditCard size={15}/>,     label: 'Mobile Money' },
+            { id: 'section-followup',  icon: <Send size={15}/>,           label: 'Suivi auto' },
             { id: 'section-vocal',     icon: <Mic size={15}/>,            label: 'Message Vocal' },
             { id: 'section-equipe',    icon: <Users size={15}/>,          label: 'Équipe' },
             { id: 'section-documents', icon: <FileText size={15}/>,       label: 'Documents' },
@@ -1233,7 +1240,7 @@ export default function DashboardPage() {
         const SECTION_LABELS: Record<string, string> = {
           'section-profil': 'Profil', 'section-contact': 'Contact', 'section-rdv': 'Agenda & RDV',
           'section-labels': 'Tags & Catégories', 'section-socials': 'Réseaux sociaux',
-          'section-liens': 'Liens', 'section-whatsapp': 'Partager', 'section-paiement': 'Mobile Money',
+          'section-liens': 'Liens', 'section-whatsapp': 'Partager', 'section-paiement': 'Mobile Money', 'section-followup': 'Suivi auto',
           'section-vocal': 'Message Vocal', 'section-equipe': 'Équipe', 'section-documents': 'Documents',
           'section-portfolio': 'Réalisations', 'section-videos': 'Vidéos', 'section-agent-ia': 'Assistant IA',
           'section-leads': 'Contacts reçus', 'section-chat-logs': 'Conversations IA',
@@ -1830,6 +1837,52 @@ Langue de travail : [français, anglais...]`}
             <p style={{ fontSize: '0.7rem', color: '#6B7280', marginTop: 4, lineHeight: 1.6 }}>
               Laissez vide les services que vous n&apos;utilisez pas. Seuls les services renseignés apparaîtront sur la carte.
             </p>
+          </div>
+        )}
+
+        {/* ---- Suivi automatique ---- */}
+        {activeSection === 'section-followup' && (
+          <div className={styles.section}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+              <p className={styles.sectionTitle} style={{ marginBottom: 0 }}>Suivi automatique</p>
+              <span style={{ fontSize: '0.62rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', background: 'rgba(34,197,94,0.15)', color: '#22C55E', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 9999, padding: '2px 9px' }}>
+                Nouveau
+              </span>
+            </div>
+            <p style={{ fontSize: '0.78rem', color: '#6B7280', margin: '0 0 20px', lineHeight: 1.6 }}>
+              Envoyez automatiquement un email de suivi à vos prospects <strong>24h après</strong> qu&apos;ils ont laissé leurs coordonnées sur votre carte. Nécessite que le visiteur ait renseigné son email.
+            </p>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', background: 'rgba(34,197,94,0.05)', border: `1px solid ${form.followup_enabled ? 'rgba(34,197,94,0.35)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 12, padding: '14px 16px', marginBottom: 16, transition: 'border-color .2s' }}>
+              <input type="checkbox" style={{ display: 'none' }}
+                checked={form.followup_enabled}
+                onChange={e => setForm(f => ({ ...f, followup_enabled: e.target.checked }))}
+              />
+              <div style={{ width: 40, height: 22, borderRadius: 99, background: form.followup_enabled ? '#22C55E' : 'rgba(255,255,255,0.15)', position: 'relative', transition: 'background .2s', flexShrink: 0 }}>
+                <div style={{ position: 'absolute', top: 3, left: form.followup_enabled ? 20 : 3, width: 16, height: 16, borderRadius: '50%', background: 'white', transition: 'left .2s' }} />
+              </div>
+              <div>
+                <div style={{ fontWeight: 600, color: 'white', fontSize: '0.875rem' }}>Activer le suivi automatique</div>
+                <div style={{ fontSize: '0.72rem', color: '#6B7280', marginTop: 2 }}>Un email sera envoyé au prospect 24h après son passage</div>
+              </div>
+            </label>
+
+            {form.followup_enabled && (
+              <div className={styles.field}>
+                <label className={styles.label}>Message personnalisé <span style={{ color: '#6B7280', fontWeight: 400 }}>(optionnel)</span></label>
+                <textarea
+                  className={styles.input}
+                  rows={4}
+                  placeholder={`Bonjour, c'est [votre prénom]. Ravi d'avoir échangé avec vous ! Je reste disponible si vous avez des questions.`}
+                  value={form.followup_message}
+                  onChange={e => setForm(f => ({ ...f, followup_message: e.target.value }))}
+                  style={{ resize: 'vertical', minHeight: 90 }}
+                />
+                <p style={{ fontSize: '0.7rem', color: '#6B7280', marginTop: 4 }}>
+                  Si vide, un message par défaut sera envoyé avec votre nom et le lien de votre carte.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
