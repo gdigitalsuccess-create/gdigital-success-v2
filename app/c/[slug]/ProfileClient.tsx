@@ -474,7 +474,10 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
             <div className={styles.heroGradient} />
 
             {/* Nom + Titre */}
-            <div className={styles.heroInfo}>
+            <div
+              className={styles.heroInfo}
+              style={isRtl && profile.logo_url ? { left: '112px' } : undefined}
+            >
               <h1 className={styles.heroName}>{profile.name}</h1>
               <p className={styles.heroMeta}>
                 {profile.title}
@@ -483,9 +486,12 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
             </div>
           </div>
 
-          {/* Logo — badge avatar bas droite */}
+          {/* Logo — badge côté fin de ligne (droite en LTR, gauche en RTL) */}
           {profile.logo_url && (
-            <div className={styles.heroLogoWrap}>
+            <div
+              className={styles.heroLogoWrap}
+              style={isRtl ? { right: 'auto', left: '24px' } : undefined}
+            >
               <div className={styles.heroLogoInner}>
                 <img
                   src={profile.logo_url}
