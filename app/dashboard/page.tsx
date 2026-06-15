@@ -85,6 +85,10 @@ type LeadItem = {
   visitor_email: string | null;
   message: string | null;
   created_at: string;
+  followup_step: number | null;
+  followup_sent_at: string | null;
+  followup_responded_at: string | null;
+  followup_unsubscribed: boolean | null;
 };
 
 const PORTFOLIO_LIMITS: Record<string, number> = {
@@ -2553,6 +2557,36 @@ Langue de travail : [français, anglais...]`}
                       </a>
                     </div>
                   )}
+
+                  {/* Statut suivi + bouton converti */}
+                  <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <span style={{ fontSize: '0.68rem', color: lead.followup_responded_at ? '#22C55E' : lead.followup_unsubscribed ? '#6B7280' : lead.followup_sent_at ? '#F59E0B' : '#4B5563' }}>
+                      {lead.followup_responded_at
+                        ? '✓ Converti'
+                        : lead.followup_unsubscribed
+                        ? '— Désabonné'
+                        : lead.followup_sent_at
+                        ? `📩 Suivi étape ${lead.followup_step ?? 1}`
+                        : '⏳ Suivi en attente'}
+                    </span>
+                    {!lead.followup_responded_at && (
+                      <button
+                        onClick={async () => {
+                          const { data: { session } } = await supabase.auth.getSession();
+                          if (!session) return;
+                          await fetch('/api/carte/lead-responded', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+                            body: JSON.stringify({ lead_id: lead.id }),
+                          });
+                          setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, followup_responded_at: new Date().toISOString() } : l));
+                        }}
+                        style={{ fontSize: '0.68rem', padding: '4px 10px', borderRadius: 6, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: '#22C55E', cursor: 'pointer', fontWeight: 600 }}
+                      >
+                        Marquer converti
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

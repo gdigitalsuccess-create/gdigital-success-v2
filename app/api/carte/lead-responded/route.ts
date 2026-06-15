@@ -7,26 +7,31 @@ const supabaseAdmin = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
   const token = req.headers.get('Authorization')?.replace('Bearer ', '');
   if (!token) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
   const { data: { user } } = await supabaseAdmin.auth.getUser(token);
   if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
+  const { lead_id } = await req.json();
+  if (!lead_id) return NextResponse.json({ error: 'lead_id manquant' }, { status: 400 });
+
+  // Vérifier que le lead appartient bien au profil de l'utilisateur connecté
   const { data: profile } = await supabaseAdmin
     .from('carte_profiles')
     .select('id')
     .eq('user_id', user.id)
     .single();
 
-  if (!profile) return NextResponse.json([], { status: 200 });
+  if (!profile) return NextResponse.json({ error: 'Profil introuvable' }, { status: 404 });
 
-  const { data: leads } = await supabaseAdmin
+  const { error } = await supabaseAdmin
     .from('carte_leads')
-    .select('id, visitor_name, visitor_phone, visitor_email, message, created_at, followup_step, followup_sent_at, followup_responded_at, followup_unsubscribed')
-    .eq('profile_id', profile.id)
-    .order('created_at', { ascending: false });
+    .update({ followup_responded_at: new Date().toISOString() })
+    .eq('id', lead_id)
+    .eq('profile_id', profile.id);
 
-  return NextResponse.json(leads ?? []);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true });
 }
