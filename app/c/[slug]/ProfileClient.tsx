@@ -237,6 +237,7 @@ const TRANSLATIONS = {
     links:           'Liens',
     shareWhatsApp:   'Partager cette carte sur WhatsApp',
     shareCard:       'Partager cette carte',
+    payMe:           'Me payer',
     copyLink:        'Copier le lien',
     copied:          'Lien copié !',
     leaveDetails:    'Laisser mes coordonnées',
@@ -263,6 +264,7 @@ const TRANSLATIONS = {
     links:           'Links',
     shareWhatsApp:   'Share this card on WhatsApp',
     shareCard:       'Share this card',
+    payMe:           'Pay me',
     copyLink:        'Copy link',
     copied:          'Link copied!',
     leaveDetails:    'Leave my details',
@@ -289,6 +291,7 @@ const TRANSLATIONS = {
     links:           'الروابط',
     shareWhatsApp:   'شارك هذه البطاقة عبر واتساب',
     shareCard:       'شارك هذه البطاقة',
+    payMe:           'ادفع لي',
     copyLink:        'نسخ الرابط',
     copied:          'تم النسخ!',
     leaveDetails:    'ترك بياناتي',
@@ -324,6 +327,7 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [showSplash, setShowSplash] = useState(!!(profile.voice_message_enabled && profile.voice_message_url));
   const [showSharePanel, setShowSharePanel] = useState(false);
+  const [showPayPanel, setShowPayPanel] = useState(false);
   const [copied, setCopied] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -750,30 +754,55 @@ export default function ProfileClient({ profile, qrDataUrl, profileUrl }: Props)
               );
             })()}
 
-            {/* Mobile Money */}
-            {[
-              { url: profile.wave_url,          label: 'Wave',         logo: '/assets/payment/wave.png' },
-              { url: profile.orange_money_url,  label: 'Orange Money', logo: '/assets/payment/orange-money.jpeg' },
-              { url: profile.mtn_url,           label: 'MTN MoMo',     logo: '/assets/payment/mtn.png' },
-              { url: profile.cinetpay_url,      label: 'CinetPay',     logo: '/assets/payment/cinetpay.jpg' },
-              { url: profile.airtel_money_url,  label: 'Airtel Money', logo: '/assets/payment/airtel-money.png' },
-              { url: profile.moov_money_url,    label: 'Moov Money',   logo: '/assets/payment/moov-money.png' },
-              { url: profile.wise_url,          label: 'Wise',         logo: '/assets/payment/wise.jpg' },
-              { url: profile.paypal_url,        label: 'PayPal',       logo: '/assets/payment/paypal.png' },
-            ].filter(p => p.url).map(p => (
-              <a
-                key={p.label}
-                href={p.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: 48, borderRadius: 12, background: 'white', border: '1px solid #e5e7eb', textDecoration: 'none' }}
-                aria-label={`Payer via ${p.label}`}
-              >
-                <span style={{ display: 'inline-flex', width: 120, height: 36, overflow: 'hidden', flexShrink: 0 }}>
-                  <img src={p.logo} alt={p.label} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                </span>
-              </a>
-            ))}
+            {/* Mobile Money — bouton unique + panel */}
+            {(() => {
+              const payMethods = [
+                { url: profile.wave_url,          label: 'Wave',         logo: '/assets/payment/wave.png' },
+                { url: profile.orange_money_url,  label: 'Orange Money', logo: '/assets/payment/orange-money.jpeg' },
+                { url: profile.mtn_url,           label: 'MTN MoMo',     logo: '/assets/payment/mtn.png' },
+                { url: profile.cinetpay_url,      label: 'CinetPay',     logo: '/assets/payment/cinetpay.jpg' },
+                { url: profile.airtel_money_url,  label: 'Airtel Money', logo: '/assets/payment/airtel-money.png' },
+                { url: profile.moov_money_url,    label: 'Moov Money',   logo: '/assets/payment/moov-money.png' },
+                { url: profile.wise_url,          label: 'Wise',         logo: '/assets/payment/wise.jpg' },
+                { url: profile.paypal_url,        label: 'PayPal',       logo: '/assets/payment/paypal.png' },
+              ].filter(p => p.url);
+
+              if (payMethods.length === 0) return null;
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <button
+                    onClick={() => setShowPayPanel(p => !p)}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', padding: '13px 20px', borderRadius: 12, background: 'linear-gradient(135deg, var(--c-primary), var(--c-secondary))', color: '#fff', fontWeight: 700, fontSize: '0.9rem', border: 'none', cursor: 'pointer' }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" width="18" height="18">
+                      <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                      <line x1="1" y1="10" x2="23" y2="10"/>
+                    </svg>
+                    {T.payMe}
+                  </button>
+
+                  {showPayPanel && (
+                    <div style={{ background: 'var(--c-card)', borderRadius: 14, padding: '14px 12px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+                      {payMethods.map(p => (
+                        <a
+                          key={p.label}
+                          href={p.url!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 48, borderRadius: 12, background: 'white', border: '1px solid #e5e7eb', textDecoration: 'none' }}
+                          aria-label={`Payer via ${p.label}`}
+                        >
+                          <span style={{ display: 'inline-flex', width: 100, height: 30, overflow: 'hidden', flexShrink: 0 }}>
+                            <img src={p.logo} alt={p.label} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Tertiaire : laisser coordonnées */}
             <button onClick={() => setShowLeadModal(true)} className={styles.pillTertiary}>
