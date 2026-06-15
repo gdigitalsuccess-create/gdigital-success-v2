@@ -31,9 +31,9 @@ async function sendMail({ to, fromName, subject, html }: {
 }
 
 function getDelayHours(step: number): number {
-  if (step === 0) return 2 / 60;   // TEST : 2 minutes
-  if (step === 1) return 4 / 60;   // TEST : 4 minutes
-  return 6 / 60;                   // TEST : 6 minutes
+  if (step === 0) return 24;       // 1er envoi : 24h après le lead
+  if (step === 1) return 3 * 24;   // 2e envoi : 3 jours après le 1er
+  return 7 * 24;                   // ensuite : toutes les semaines
 }
 
 function getSubject(step: number, ownerFirstName: string, visitorFirstName: string): string {
